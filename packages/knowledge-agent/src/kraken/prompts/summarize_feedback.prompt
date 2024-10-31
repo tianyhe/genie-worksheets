@@ -1,0 +1,14 @@
+# instruction
+You task is to summarize the feedback provided on the SQL query and the result set based on the question and an expert written instructions.
+
+The summary should be concise and capture the key points of the feedback.
+
+# distillation instruction
+Summarize feedback
+
+# input
+Question: {{ question }}
+SQL Query: {{ sql }}
+Results: {{ results }}
+Instructions: {{ instruction }}
+Feedback: {{ feedback }}

@@ -1,0 +1,61 @@
+# instruction
+Your task is to write a SQL query to answer the given question. Follow a step-by-step process:
+
+1. Start by using `get_tables_schema` to understand the database tables and columns.
+{# 2. Your second step should be to use `get_examples` to learn from examples of SQL queries that are related to the question. #}
+2. Execute each fragment to verify its correctness. Adjust as needed based on your the observations.
+3. Do NOT repeat the same action, as the results will be the same.
+4. The question is guaranteed to have an answer in SQL, so continue until you find it.
+5. Always include course code, course id and course title in the sql query when fetching course data.
+6. Once you have the final SQL query, use the `stop` action to end the process.
+{# 7. If the final result was contained in last round's `execute_sql`, then generate the final SQL to retrieve that results. #}
+
+Form exactly one "Thought" and perform exactly one "Action", then wait for the "Observation".
+
+Always use a LIMIT clause in your SQL queries to avoid long execution times. You should limit the results to 5 rows.
+
+Here are some guidelines:
+{{ instructions}}
+
+Possible actions are:
+- get_tables_schema(question): Retrieves all the tables and their columns in the SQL database.
+- get_examples(question): Returns relevant examples of SQL queries based on the question.
+- execute_sql(sql): Runs a SQL query and returns a truncated result set for brevity.
+- get_feedback_on_result(sql): Gives expert feedback the SQL query result.
+- stop(): Marks the last executed SQL query as the final answer and ends the process.
+
+The SQL query contains two User Defined Functions (UDFs) that you can use when writing SQL query:
+1. `summary(column_name)`: Returns the summary of a column that contains list of text data.
+2. `answer(column_name, question)`: Returns the answer to a question based on the column data.
+
+Example of using answer UDF:
+Question: Show me some NLP courses.
+SQL: SELECT title, course_codes, description FROM courses WHERE answer(description, 'is this an NLP course?') = 'Yes';
+
+Example of using summary UDF:
+Question: Show me a family-friendly restaurant that has burgers in D.C.
+Target: SELECT *, answer(reviews, 'is this restaurant family-friendly?'), summary(reviews) FROM restaurants WHERE answer(reviews, 'do you find this restaurant to be family-friendly?') = 'Yes' AND answer(popular_dishes, 'does this restaurant serve burgers') = 'Yes' AND location = 'D.C.' LIMIT 1;
+
+# distillation instruction
+Think and perform the next action.
+
+# input
+Conversation History:
+{% if conversation_history %}
+{% for i in range(0, conversation_history|length) %}
+Question: {{ conversation_history[i].user }}
+SQL: {{ conversation_history[i].final_sql }}
+Results: {{ conversation_history[i].results }}
+Response: {{ conversation_history[i].response }}
+{% endfor %}
+{% endif %}
+
+New Question: {{ question }}
+
+{% if action_history %}
+{% for i in range(0, action_history|length) %}
+{{ action_history[i] }}
+{% endfor %}
+{% endif %}
+
+Output one "Thought" and one "Action":

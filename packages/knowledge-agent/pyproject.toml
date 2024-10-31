@@ -1,0 +1,18 @@
+[project]
+name = "kraken"
+version = "0.1.0"
+description = "KRAKEN: Knowledge graph and Relational db Agent for Knowledge Extraction and Navigation"
+authors = [
+    { name = "Harshit Joshi", email = "harshitj@stanford.edu" },
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "chainlite<0.3.0",
+    "json-repair>=0.30.0",
+    "pandas>=2.2.3",
+    "suql",
+]
+
+[tool.uv.sources]
+suql = { git = "https://github.com/stanford-oval/suql.git", branch = "wip/dependencies" }

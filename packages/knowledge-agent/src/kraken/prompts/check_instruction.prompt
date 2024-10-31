@@ -1,0 +1,14 @@
+# instruction
+Your task is to provide feedback on the SQL query and the result set based on the question and an expert written instruction. Follow the step-by-step process:
+
+1. Decide if the instruction is applicable to the SQL query, the result set and the question.
+2. Provide feedback on the SQL query and the result set based on the instruction.
+
+# distillation instruction
+Provide feedback on SQL query
+
+# input
+Question: {{ question }}
+SQL Query: {{ sql }}
+Results: {{ results }}
+Instruction: {{ instruction }}

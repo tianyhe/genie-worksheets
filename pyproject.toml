@@ -1,0 +1,42 @@
+[project]
+name = "worksheets"
+version = "0.1.0"
+description = "Genie Worksheets: A high-level, expressive and declarative specification for creating knowledge agents"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "chainlite < 0.3.0",
+    "google-api-python-client>=2.149.0",
+    "google-auth>=2.35.0",
+    "json-repair>=0.30.0",
+    "kraken",
+    "loguru>=0.7.2",
+    "pandas>=2.2.3",
+    "psycopg2-binary>=2.9.10",
+    "sympy>=1.13.3",
+    "termcolor>=2.5.0",
+    "toml>=0.10.2",
+    "sql-metadata>=2.13.0",
+    "suql",
+    "grandalf>=0.8",
+    "langchain-openai>=0.1.7",
+]
+
+[project.optional-dependencies]
+chainlit = [
+    "chainlit>=1.2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "jupyter>=1.1.1",
+]
+
+[tool.uv.sources]
+suql = { git = "https://github.com/stanford-oval/suql", branch = "wip/dependencies" }
+kraken = { path = "packages/knowledge-agent", editable = true }
+

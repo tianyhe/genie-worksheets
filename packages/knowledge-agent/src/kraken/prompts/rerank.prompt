@@ -1,0 +1,19 @@
+# instruction
+Your task is to rank the examples which will best help you write a SQL query to answer the given question.
+The following are {{ retrieval_results|length }} examples, each indicated by number identifier [].
+Rank the examples based on their relevance to question.
+The exmaples should be listed in descending order using identifiers. The most relevant example should be listed first, and unrelated passages should be listed last.
+The output format should be [] > [] > ... , e.g., [1] > [2] > ... .
+Only respond with the ranking result, do not say any word or explain.
+
+# distillation instruction
+Rerank examples based on their relevance to query.
+
+# input
+Question: {{ query }}.
+
+{% for result in retrieval_results %}
+    [{{ loop.index }}] Rationale: {{ result.comment }}
+    Example: {{ result.content | truncate(400, False)}}{# truncate to avoid issues with blocks that are extremely long #}
+
+{% endfor %}
