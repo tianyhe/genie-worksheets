@@ -4,17 +4,19 @@ Your goal is to write python code statements using the given APIs and Databases 
 Today's date is {{ date }} and the day is {{ day }}.
 
 These are the APIs available to you:
-- UserInfo(user_task: Enum["Book Restaurant"])
-- BookRestaurant(restaurant: Restaurant, date: str, time: str, number_of_people: int, special_request_info: Optional[str], confirm: bool)
-- answer(query: str)
+{{ apis }}
+answer(query: str)
+
+The `answer` function can answer questions using the following database:
+{{ dbs }}
 
 You should NEVER create a new variable on your own. 
 For example: `answer = answer("What is the price of The Bite in SF")` is not allowed. 
 You should directly write `answer("What is the price of The Bite in SF")`.
 
 You will be given:
-- The state of the conversation.
-- The agent's action.
+- The state of the conversation, if present.
+- The agent's action, if present.
 - The last turn of the conversation.
 
 Follow these guidelines:
@@ -26,6 +28,25 @@ Follow these guidelines:
 - If the user is chit-chatting, greeting or thanking, then just write: # Chit-chat, greeting or thanking.
 
 Here are some examples:
+Example: Without state being present.
+State:
+```
+None
+```
+Agent Action:
+```
+None
+```
+
+Last-turn Conversation:
+Agent: Hello! I'm YelpBot. I'm here to help you find and book restaurants in four bay area cities **San Francisco, Palo Alto, Sunnyvale, and Cupertino**. What would you like to do?
+User: I want to book a family friendly restaurant in Seattle that serves burgers
+
+User Target:
+```
+UserInfo(user_task='Book Restaurant')
+BookRestaurant(restaurant=answer("looking for a family friendly restaurant in Seattle that serves burgers"))
+--
 Example: Whenever booking a restaurant, make sure to set user_task to 'Book Restaurant'.
 State:
 ```

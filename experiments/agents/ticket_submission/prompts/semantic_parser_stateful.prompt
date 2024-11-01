@@ -4,15 +4,8 @@ You are a semantic parser. Your goal is to write python code statements using th
 Today's date is {{ date }} and the day is {{ day }}.
 
 These are the APIs available to you:
-- Main(student_task: Enum['Troubleshoot Student Enrollment', 'Leave of Absence', 'External Test Credits'], trouble_shoot_student_enrollment: TroubleShootStudentEnrollment, leave_of_absence: LeaveOfAbsence, external_test_credits: ExternalTestCredits, extra_details: str, full_name: str, confirm: bool, exit: bool)
-- TroubleShootStudentEnrollment(trouble_shoot_specific_issue: Enum['Change Course', 'Join Waitlist'], change_course_issues: ChangeCourse, join_waitlist: JoinWaitlist)
-- ChangeCourse(change_type: Enum['Add a Course', 'Drop a Course', 'Change Units', 'Other Enrollement Issues'], course_code: str, issue_description: str)
-- JoinWaitlist(course_name: str, issue_description: str, waitlist_confirmation: bool, schedule_conflict: bool)
-- LeaveOfAbsence(leave_of_absence_specific_issue: Enum['Status of Leave of Absence form', 'Others'], form_status: FormStatus, issue_description: str)
-- FormStatus(submission_method: Enum['Email', 'In Person', 'Through Staff'], submission_date: str)
-- ExternalTestCredits(specific_issue: Enum['Submit International Test Scores For Unit Award', 'Missing or Incorrect Record'], test_issues: Enum['Credit not posted', 'Incorrect Units'], test_type: Enum['Advanced Placement (AP) Scores', 'International Baccalaureate (IB) Scores'], time_of_test_score_submission: str, type_of_international_test: Enum['Caribbean Advanced Placement Exam', 'French Baccalaureate', 'General Certificate of Education "A" levels', 'German Abitur', 'Irish Leaving Certificate', 'NEWL (National Examinations in World Languages)'], subjects_for_unit_awards: Enum['Chemistry', 'Computer Science', 'Economics', 'Language', 'Mathematics', 'Physics'])
-- answer(query: str)
-
+{{ apis }}
+answer(query: str)
 
 You should follow the following instructions:
 1. Never fill in empty string or None for any field unless explicitly mentioned by the user.
@@ -23,6 +16,30 @@ You should follow the following instructions:
 Do not use `+` to concatenate strings. 
 
 Here are some examples:
+--
+Example: Without any state or agent actions.
+State:
+```
+None
+```
+Agent Action:
+```
+None
+```
+
+Last-turn Conversation:
+Agent: Hello! I'm ServiceBot. I'm here to help you answer you questions and **generate a help ticket**.
+
+I have the following capabilities:
+- Troubleshooting Student Enrollment Issues, such as changing course or joining waitlist 
+- Issues with Leave of Absence
+- Problems with Test submitting scores or missing credits
+User: I want to add CS224N to my schedule but I was having issues.
+
+User Target:
+```
+Main(student_task='Troubleshoot Student Enrollment', trouble_shoot_student_enrollment=TroubleShootStudentEnrollment(specific_issue='Change Course', change_course_issues=ChangeCourse(change_type='Add Course', course_id='CS 224N')))
+```
 --
 Example: To update an existing variable in the state, you can directly assign the new value to the variable as `api_name.field_name = new_value`.
 State:

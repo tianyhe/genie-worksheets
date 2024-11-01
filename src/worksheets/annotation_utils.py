@@ -120,9 +120,9 @@ def prepare_context_input(bot, dlg_history, current_dlg_turn):
         )
         agent_utterance = dlg_history[-1].system_response
     else:
-        state_schema = None
-        agent_acts = None
-        agent_utterance = None
+        state_schema = "None"
+        agent_acts = "None"
+        agent_utterance = bot.starting_prompt
 
     return state_schema, agent_acts, agent_utterance
 

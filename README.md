@@ -5,7 +5,8 @@
         <b>GenieWorksheets</b>
         <br>
         <a href="https://arxiv.org/abs/2407.05674">
-            <img src="https://img.shields.io/badge/cs.CL-2407.05674-b31b1b" alt="arXiv">
+            <img src="https://img.shields.io/badge/cs.CL-2407.05674-b31b1b"
+            alt="arXiv">
         </a>
     </h1>
 </p>
@@ -14,9 +15,13 @@
 </p>
 
 
-Genie is a programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access.
-Unlike LLMs, Genie provides reliable grounded responses, with controllable agent policies through its expressive specification, Genie Worksheet.
-In contrast to dialog trees, it is resilient to diverse user queries, helpful with knowledge sources, and offers ease of programming policies through its declarative paradigm.
+Genie is a programmable framework for creating task-oriented conversational
+agents that are designed to handle complex user interactions and knowledge
+access. Unlike LLMs, Genie provides reliable grounded responses, with 
+controllable agent policies through its expressive specification, Genie 
+Worksheet. In contrast to dialog trees, it is resilient to diverse user queries,
+helpful with knowledge sources, and offers ease of programming policies through
+ its declarative paradigm.
 
 [Research Preprint](https://arxiv.org/abs/2407.05674)
 
@@ -37,7 +42,8 @@ uv sync
 
 ## Creating Agents
 
-Example agents are present in `experiments/agents/` directory. You can use them as a reference to create your own agents.
+Example agents are present in `experiments/agents/` directory. You can use them
+as a reference to create your own agents.
 
 ### Define your Knowledge Sources
 
@@ -116,7 +122,18 @@ asyncio.run(conversation_loop(course_assistant_bot, output_state_path="yelp_bot.
 ```
 
 
+### Add prompts
+For each agent you need to create prompts for:
+- Semantic parsing: `semantic_parsing.prompt`
+- Response generation: `response_generator.prompt`
 
+Place these prompts in the prompt directory that you specify while creating the
+agent.
+
+You can copy basic annotated prompts from `experiments/sample_prompts/` 
+directory. Make change where we have `TODO`. You need two provide a few 
+guidelines in the prompt that will help the LLM to perform better and some 
+examples. Please `experiments/agents/course_enroll/prompts/` for inspiration!
 
 
 ### Spreadsheet Specification

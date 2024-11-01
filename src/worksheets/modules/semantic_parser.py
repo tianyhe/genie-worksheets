@@ -229,18 +229,15 @@ async def user_utterance_to_user_target(
     """
 
     # Prepare the prompt file based on the state schema
-    if state_schema == "" or state_schema is None:
-        prompt_file = "semantic_parser_stateless.prompt"
-    else:
-        prompt_file = "semantic_parser_stateful.prompt"
+    prompt_file = "semantic_parser.prompt"
 
     # Prepare the inputs for the prompt
     prompt_inputs = {
         "user_utterance": current_dlg_turn.user_utterance,
         "dlg_history": dlg_history,
         "bot": bot,
-        "available_worksheets_text": available_worksheets_text,
-        "available_dbs_text": available_dbs_text,
+        "apis": available_worksheets_text,
+        "dbs": available_dbs_text,
         "date": datetime.datetime.now().strftime("%Y-%m-%d"),
         "day": datetime.datetime.now().strftime("%A"),
         "date_tmr": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime(
