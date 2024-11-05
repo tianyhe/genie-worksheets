@@ -152,7 +152,7 @@ Please note that we only use the specification defined in the first sheet of the
 
 ### Running the Agent (Web Interface)
 
-Create a folder under `frontend/<agent_name>` and create a `app_*` file.
+Create a folder `frontend/`  under `experiments/agents/<agent_name>` and create a `app_*` file.
 
 You can run the agent in a web interface by running:
 
@@ -160,8 +160,15 @@ You can run the agent in a web interface by running:
 
 For restaurant agent:
 ```bash
-cd frontend/restaurant
-chainlit run app_restaurant.py
+cd experiments/agents/yelpbot/frontend/
+chainlit run app_restaurant.py --port 8800
+```
+
+## Set LLM Config
+```
+export AZURE_OPENAI_WS_KEY="<AZURE OPENAI WS KEY>"
+export AZURE_WS_ENDPOINT="<AZURE WS ENDPOINT>"
+export AZURE_WS_API_VERSION="<AZURE WS API VERSION>"
 ```
 
 ## Cite our work

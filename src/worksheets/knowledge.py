@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from typing import Any, Callable, List, Optional
+from typing import Callable, List, Optional
 
 from chainlite import write_prompt_logs_to_file
 from kraken.agent import PartToWholeParser

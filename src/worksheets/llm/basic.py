@@ -28,10 +28,10 @@ USER_EXAMPLE_END = "<|endofexampleuser|>"
 AI_EXAMPLE_START = "<|startofexampleai|>"
 AI_EXAMPLE_END = "<|endofexampleai|>"
 
-oval_config_params = {
+config_params = {
     "api_key": os.getenv("AZURE_OPENAI_WS_KEY"),
-    "azure_endpoint": "https://ovaloairesourceworksheet.openai.azure.com/",
-    "api_version": "2023-12-01-preview",
+    "azure_endpoint": os.getenv("AZURE_WS_ENDPOINT"),
+    "api_version": os.getenv("AZURE_WS_API_VERSION"),
 }
 
 
@@ -102,7 +102,7 @@ async def llm_generate(
         llm = AzureChatOpenAI(
             azure_deployment=model_name.replace("azure/", ""),
             streaming=stream,
-            **oval_config_params,
+            **config_params,
             **llm_params,
         )
     else:
