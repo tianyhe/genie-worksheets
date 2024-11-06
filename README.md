@@ -146,7 +146,7 @@ You should save the service_account key as `service_account.json` in the `worksh
 
 Here is a starter worksheet that you can use for your reference: [Starter Worksheet](https://docs.google.com/spreadsheets/d/1ST1ixBogjEEzEhMeb-kVyf-JxGRMjtlRR6z4G2sjyb4/edit?usp=sharing)
 
-Here is a sample spreadsheet for a restaurant agent: [Restaurant Agent](https://docs.google.com/spreadsheets/d/1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE/edit#gid=699205925)
+Here is a sample spreadsheet for a restaurant agent: [Restaurant Agent](https://docs.google.com/spreadsheets/d/1FXg5VFrdxQlUyld3QmKKL9BN1lLIhAtQTJjCHyNOU_Y/edit?usp=sharing)
 
 Please note that we only use the specification defined in the first sheet of the spreadsheet.
 
