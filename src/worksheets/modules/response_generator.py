@@ -12,7 +12,6 @@ from worksheets.modules import CurrentDialogueTurn
 async def generate_response(
     current_dlg_turn: CurrentDialogueTurn, dlg_history: List[CurrentDialogueTurn], bot
 ):
-
     # Gather the schema for the current state
     state_schema = get_context_schema(bot.context, response_generator=True)
 
@@ -49,10 +48,11 @@ async def generate_response(
         "response_generator.prompt",
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        model_name="gpt-4o",
+        **bot.args["response_generator"],
     )
 
     current_dlg_turn.system_response = agent_response
+
 
 # TODO: We are not using this, but should make this better
 def response_supervisor(agent_response, prompt_inputs):

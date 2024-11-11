@@ -257,8 +257,7 @@ async def user_utterance_to_user_target(
         prompt_file,
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        model_name="azure/gpt-4o",
-        temperature=0.0,
+        **bot.args["semantic_parser"],
     )
 
     # Extract the code block from the parsed output

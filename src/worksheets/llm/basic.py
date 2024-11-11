@@ -10,6 +10,7 @@ from langchain.prompts import (
 from langchain.schema import HumanMessage, StrOutputParser, SystemMessage
 from langchain_community.callbacks.manager import get_openai_callback
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_together import ChatTogether
 from loguru import logger
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -103,6 +104,12 @@ async def llm_generate(
             azure_deployment=model_name.replace("azure/", ""),
             streaming=stream,
             **config_params,
+            **llm_params,
+        )
+    elif "together" in model_name:
+        llm = ChatTogether(
+            model=model_name.replace("together/", ""),
+            streaming=stream,
             **llm_params,
         )
     else:

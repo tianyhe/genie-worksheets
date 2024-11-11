@@ -3,12 +3,16 @@ import os
 import random
 from uuid import uuid4
 
+import yaml
 from suql.agent import postprocess_suql
 
 from worksheets.agent import Agent
 from worksheets.environment import get_genie_fields_from_ws
 from worksheets.interface_utils import conversation_loop
 from worksheets.knowledge import SUQLKnowledgeBase, SUQLReActParser
+
+with open("model_config.yaml", "r") as f:
+    model_config = yaml.safe_load(f)
 
 # Define your APIs
 course_is_full = {}
@@ -86,10 +90,11 @@ course_assistant_bot = Agent(
 
 How can I help you today? 
 """,
-    args={},
+    args=model_config,
     api=[course_detail_to_individual_params, courses_to_take_oval, is_course_full],
     knowledge_base=suql_knowledge,
     knowledge_parser=suql_react_parser,
+    model_config=model_config,
 ).load_from_gsheet(
     gsheet_id="1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE",
 )

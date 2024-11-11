@@ -1561,6 +1561,21 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain-together"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/62/e8/8156337e275bea70302e48f9425e0626bffba2eedf6fa28f744c04f3ee5a/langchain_together-0.1.1.tar.gz", hash = "sha256:54e8f27d5bcd70fac1fb6d4fcada2ad779c0d2002750baa85ad3c0a3c9f09834", size = 7997 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/90/59a110cfa0cca4973a888dfa39017384e9f85818e614c0a7cb6544ca7f2a/langchain_together-0.1.1-py3-none-any.whl", hash = "sha256:d5b82e98190d9b8358d79b5191c4de580fcc006c9faa0f90964cd1c383ce1008", size = 9505 },
+]
+
+[[package]]
 name = "langgraph"
 version = "0.0.41"
 source = { registry = "https://pypi.org/simple" }
@@ -3421,6 +3436,7 @@ dependencies = [
     { name = "json-repair" },
     { name = "kraken" },
     { name = "langchain-openai" },
+    { name = "langchain-together" },
     { name = "loguru" },
     { name = "pandas" },
     { name = "psycopg2-binary" },
@@ -3451,6 +3467,7 @@ requires-dist = [
     { name = "json-repair", specifier = ">=0.30.0" },
     { name = "kraken", editable = "packages/knowledge-agent" },
     { name = "langchain-openai", specifier = ">=0.1.7" },
+    { name = "langchain-together", specifier = ">=0.1.1" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
