@@ -3026,7 +3026,7 @@ wheels = [
 [[package]]
 name = "suql"
 version = "1.1.7a10"
-source = { git = "https://github.com/stanford-oval/suql.git?branch=wip%2Fdependencies#300b5e9542bd98101c415e1b9869fe9fac0965e2" }
+source = { git = "https://github.com/stanford-oval/suql.git?branch=wip%2Fdependencies#a082a530213a3f926092d9f91d26b6aa50db56ca" }
 dependencies = [
     { name = "flask" },
     { name = "flask-cors" },

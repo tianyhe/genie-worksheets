@@ -8,7 +8,7 @@ from kraken.utils import DialogueTurn
 from loguru import logger
 from pydantic import BaseModel
 from suql import suql_execute
-from suql.agent import DialogueTurn
+from suql.agent import DialogueTurn as SUQLDialogueTurn
 
 from worksheets.environment import Answer, GenieRuntime
 from worksheets.llm import llm_generate
@@ -46,6 +46,18 @@ class SUQLKnowledgeBase(BaseModel):
     # Maximum number of rows to return in the result
     max_rows: int = 3
 
+    # Username for the database
+    db_username: Optional[str] = None
+
+    # Password for the database
+    db_password: Optional[str] = None
+
+    # db host
+    db_host: str = "127.0.0.1"
+
+    # db port
+    db_port: str = "5432"
+
     # Additional parameters for Azure
     api_base: Optional[str] = None
 
@@ -66,6 +78,10 @@ class SUQLKnowledgeBase(BaseModel):
             llm_model_name=self.llm_model_name,
             embedding_server_address=self.embedding_server_address,
             source_file_mapping=self.source_file_mapping,
+            db_username=self.db_username,
+            db_password=self.db_password,
+            db_host=self.db_host,
+            db_port=self.db_port,
             api_base=self.api_base,
             api_version=self.api_version,
         )
@@ -107,7 +123,7 @@ class BaseSUQLParser(BaseModel):
                 db_result = db_results[i]
 
             suql_dlg_history.append(
-                DialogueTurn(
+                SUQLDialogueTurn(
                     user_utterance=user_utterance,
                     db_results=db_result,
                     user_target=user_target,

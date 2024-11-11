@@ -62,6 +62,8 @@ suql_knowledge = SUQLKnowledgeBase(
             current_dir, "course_assistant_general_info.txt"
         ) # mapping of free-text files with the path
     },
+    db_host="127.0.0.1", # database host
+    db_port="5432", # database port
     postprocessing_fn=postprocess_suql,  # optional postprocessing function
     result_postprocessing_fn=None,  # optional result postprocessing function
 )
