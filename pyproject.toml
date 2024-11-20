@@ -21,10 +21,6 @@ dependencies = [
     "grandalf>=0.8",
     "langchain-openai>=0.1.7",
     "langchain-together>=0.1.1",
-]
-
-[project.optional-dependencies]
-chainlit = [
     "chainlit>=1.2.0",
 ]
 

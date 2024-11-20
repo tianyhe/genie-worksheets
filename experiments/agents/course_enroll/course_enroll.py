@@ -99,6 +99,6 @@ How can I help you today?
     gsheet_id="1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE",
 )
 
-
-# Run the conversation loop
-asyncio.run(conversation_loop(course_assistant_bot, "course_assistant_bot.json"))
+if __name__ == "__main__":
+    # Run the conversation loop
+    asyncio.run(conversation_loop(course_assistant_bot, "course_assistant_bot.json"))
