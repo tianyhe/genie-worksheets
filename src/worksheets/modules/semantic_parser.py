@@ -252,12 +252,20 @@ async def user_utterance_to_user_target(
         "description": bot.description,
     }
 
+    if "model" in bot.args and "semantic_parser" in bot.args["model"]:
+        model_args = bot.args["model"]["semantic_parser"]
+    else:
+        model_args = {
+            "model": "azure/gpt-4o",
+            "temperature": 0.0,
+            "max_tokens": 512,
+        }
     # Generate the user target using LLM
     parsed_output = await llm_generate(
         prompt_file,
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        **bot.args["model"]["semantic_parser"],
+        **model_args,
     )
 
     # Extract the code block from the parsed output

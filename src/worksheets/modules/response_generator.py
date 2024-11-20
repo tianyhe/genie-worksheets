@@ -43,13 +43,21 @@ async def generate_response(
         "description": bot.description,
         "parsing": current_dlg_turn.user_target,
     }
+    if "model" in bot.args and "response_generator" in bot.args["model"]:
+        model_args = bot.args["model"]["response_generator"]
+    else:
+        model_args = {
+            "model": "azure/gpt-4o",
+            "temperature": 0.0,
+            "max_tokens": 512,
+        }
 
     # Generate the agent's response
     agent_response = await llm_generate(
         "response_generator.prompt",
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        **bot.args["model"]["response_generator"],
+        **model_args,
     )
 
     current_dlg_turn.system_response = agent_response
