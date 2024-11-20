@@ -4,7 +4,8 @@ from typing import List
 
 from bs4 import BeautifulSoup
 
-from worksheets.annotation_utils import get_agent_action_schemas, get_context_schema
+from worksheets.annotation_utils import (get_agent_action_schemas,
+                                         get_context_schema)
 from worksheets.llm.basic import llm_generate
 from worksheets.modules import CurrentDialogueTurn
 
@@ -48,7 +49,7 @@ async def generate_response(
         "response_generator.prompt",
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        **bot.args["response_generator"],
+        **bot.args["model"]["response_generator"],
     )
 
     current_dlg_turn.system_response = agent_response

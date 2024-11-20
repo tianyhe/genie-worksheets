@@ -257,7 +257,7 @@ async def user_utterance_to_user_target(
         prompt_file,
         prompt_inputs=prompt_inputs,
         prompt_dir=bot.prompt_dir,
-        **bot.args["semantic_parser"],
+        **bot.args["model"]["semantic_parser"],
     )
 
     # Extract the code block from the parsed output

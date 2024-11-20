@@ -90,7 +90,7 @@ course_assistant_bot = Agent(
 
 How can I help you today? 
 """,
-    args=model_config,
+    args={"model": model_config},
     api=[course_detail_to_individual_params, courses_to_take_oval, is_course_full],
     knowledge_base=suql_knowledge,
     knowledge_parser=suql_react_parser,

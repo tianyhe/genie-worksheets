@@ -4,6 +4,7 @@ import random
 import sys
 
 import chainlit as cl
+import yaml
 from loguru import logger
 
 from worksheets.agent import Agent
@@ -30,6 +31,9 @@ logger.add(
     os.path.join(current_dir, "..", "user_logs_courseenroll", "user_logs.log"),
     rotation="1 day",
 )
+
+with open("model_config.yaml", "r") as f:
+    model_config = yaml.safe_load(f)
 
 
 def convert_to_json(dialogue: list[CurrentDialogueTurn]):
@@ -64,7 +68,7 @@ async def initialize():
 
 How can I help you today? 
 """,
-            args={},
+            args={"model": model_config},
             api=[
                 course_detail_to_individual_params,
                 courses_to_take_oval,

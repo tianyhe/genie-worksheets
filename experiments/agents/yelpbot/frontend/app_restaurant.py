@@ -3,6 +3,7 @@ import os
 import sys
 
 import chainlit as cl
+import yaml
 from loguru import logger
 
 from worksheets.agent import Agent
@@ -26,6 +27,10 @@ logger.remove()
 logger.add(
     os.path.join(current_dir, "..", "user_logs", "user_logs.log"), rotation="1 day"
 )
+
+with open("model_config.yaml", "r") as f:
+    model_config = yaml.safe_load(f)
+
 
 # yelp bot
 unhappy_paths = [
@@ -64,7 +69,7 @@ async def initialize():
             description="You an assistant at Yelp and help users with all their queries related to booking a restaurant. You can search for restaurants, ask me anything about the restaurant and book a table.",
             prompt_dir=prompt_dir,
             starting_prompt="""Hello! I'm YelpBot. I'm here to help you find and book restaurants in four bay area cities **San Francisco, Palo Alto, Sunnyvale, and Cupertino**. What would you like to do?""",
-            args={},
+            args={"model": model_config},
             api=[book_restaurant_yelp],
             knowledge_base=suql_knowledge,
             knowledge_parser=suql_parser,

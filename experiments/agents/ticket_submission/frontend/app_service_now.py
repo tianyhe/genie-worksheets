@@ -4,6 +4,7 @@ import random
 import sys
 
 import chainlit as cl
+import yaml
 from loguru import logger
 
 from worksheets.agent import Agent
@@ -30,6 +31,10 @@ logger.add(
     os.path.join(current_dir, "..", "user_logs_servicenow", "user_logs.log"),
     rotation="1 day",
 )
+
+with open("model_config.yaml", "r") as f:
+    model_config = yaml.safe_load(f)
+
 
 # yelp bot
 unhappy_paths = [
@@ -80,7 +85,7 @@ I have the following capabilities:
 - Issues with Leave of Absence
 - Problems with Test submitting scores or missing credits
 """,
-            args={},
+            args={"model": model_config},
             api=[submit_api, change_course_service, join_waitlist_service],
             knowledge_base=suql_knowledge,
             knowledge_parser=suql_parser,

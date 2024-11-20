@@ -127,6 +127,6 @@ I have the following capabilities:
     gsheet_id="1aNAG5xh1F_6EmtUAYTmoOBlJBdnpl7lgiZ9YhIW8UxA",
 )
 
-
-# Run the conversation loop
-asyncio.run(conversation_loop(ticket_submission_bot, "ticket_submission_bot.json"))
+if __name__ == "__main__":
+    # Run the conversation loop
+    asyncio.run(conversation_loop(ticket_submission_bot, "ticket_submission_bot.json"))
