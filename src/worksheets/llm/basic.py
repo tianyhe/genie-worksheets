@@ -106,7 +106,7 @@ async def llm_generate(
             **config_params,
             **llm_params,
         )
-    elif "together" in model_name:
+    elif "togetherai" in model_name:
         llm = ChatTogether(
             model=model_name.replace("togetherai/", ""),
             streaming=stream,
