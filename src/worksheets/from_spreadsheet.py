@@ -6,7 +6,6 @@ from worksheets.environment import (
     Action,
     GenieDB,
     GenieField,
-    GenieRuntime,
     GenieType,
     GenieWorksheet,
     get_genie_fields_from_ws,
@@ -51,6 +50,9 @@ def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default):
 
     # removing headers from the CSV
     rows = rows[1:]
+
+    # strip all the cells
+    rows = [[cell.strip() for cell in row] for row in rows]
 
     # collecting all the rows
     forms = []
