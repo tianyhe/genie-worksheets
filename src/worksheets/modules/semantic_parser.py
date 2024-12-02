@@ -187,8 +187,12 @@ def extract_answer(text):
     pattern_type = "func"
     # Regex pattern to find answer() with a string argument inside, handling both single and double quotes
     pattern = r'answer\((?:("[^"]*")|(\'[^\']*\'))\)'
-
     matches = re.findall(pattern, text)
+
+    # Regex pattern to find answer(query='...') format
+    pattern_query = r'answer\(query=(?:("[^"]*")|(\'[^\']*\'))\)'
+    if len(matches) == 0:
+        matches = re.findall(pattern_query, text)
 
     # Each match is a tuple with the string in either the first or the second position, depending on the quote type
     # We extract non-None values from these tuples and return them as a list
