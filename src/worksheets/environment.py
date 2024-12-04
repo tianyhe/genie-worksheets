@@ -82,9 +82,10 @@ class GenieREPR(type):
 
     def get_semantic_parser_schema(cls):
         parameters = []
-        for field in get_genie_fields_from_ws(cls):
-            if not field.internal:
-                parameters.append(field.schema(value=False))
+        if cls.predicate == "" or cls.predicate is True:
+            for field in get_genie_fields_from_ws(cls):
+                if not field.internal:
+                    parameters.append(field.schema(value=False))
 
         return f"{cls.__name__}({', '.join([repr(param) for param in parameters])})"
 
@@ -589,7 +590,7 @@ class GenieWorksheet(metaclass=GenieREPR):
                 # if the worksheet has a confirm type field which is set to true
                 # upon update, we need to set it to false
                 for field in get_genie_fields_from_ws(self):
-                    if field.slottype == "confirm" and field.value == True:
+                    if field.slottype == "confirm" and field.value is True:
                         field.value = False
 
                 if isinstance(value, GenieField) and value.name == name:
@@ -1333,7 +1334,7 @@ def same_worksheet(ws1: GenieWorksheet, ws2: GenieWorksheet):
     for field in get_genie_fields_from_ws(ws1):
         for field2 in get_genie_fields_from_ws(ws2):
             if field.name == field2.name:
-                if type(field.value) != type(field2.value):
+                if type(field.value) is not type(field2.value):
                     return False
                 if isinstance(field.value, GenieWorksheet) and isinstance(
                     field2.value, GenieWorksheet
@@ -1814,8 +1815,8 @@ class AgentActs:
 
 def sanitize_dev_code(code: str, all_variables: list[str]):
     """Sanitize the developer's code to ensure it doesn't contain any undefined variables."""
-    l = PythonLexer()
-    tokens = l.get_tokens(code)
+    lexer = PythonLexer()
+    tokens = lexer.get_tokens(code)
     new_tokens_list = []
     for token in tokens:
         if token[0] == Token.Name and token[1] in all_variables:
