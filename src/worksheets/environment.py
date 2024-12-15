@@ -82,7 +82,7 @@ class GenieREPR(type):
 
     def get_semantic_parser_schema(cls):
         parameters = []
-        if cls.predicate == "" or cls.predicate is True:
+        if hasattr(cls, "predicate") and (cls.predicate == "" or cls.predicate is True):
             for field in get_genie_fields_from_ws(cls):
                 if not field.internal:
                     parameters.append(field.schema(value=False))

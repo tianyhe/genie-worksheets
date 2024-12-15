@@ -1,0 +1,89 @@
+site_name: GenieWorksheets
+site_url: https://worksheets.genie.stanford.edu/
+repo_url: https://github.com/stanford-oval/genie-worksheets/
+nav:
+  - Home:
+    - What is GenieWorksheets?: index.md
+    - Getting Started:
+      - Installation: installation.md
+      - Quickstart: quickstart.md
+      - Tutorials: tutorials.md
+      - Best Practices: best_practices.md
+    - Core Concepts:
+      - Dialogue State: dialogue_state.md
+      - Agent Policies: agent_policies.md
+      - Task Completion: task_completion.md
+  - Examples:
+    - Restaurant Reservation: restaurant_reservation.md
+    - Ticket Submission: ticket_submission.md
+    - Course Enrollment: course_enrollment.md
+    
+
+theme:
+  name: material
+  logo: assets/genie_worksheets_circle.png
+  palette:
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  icon:
+    repo: fontawesome/brands/github
+
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.expand
+    - navigation.path
+    - navigation.prune
+    - navigation.indexes
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - toc.follow
+    - navigation.footer
+    # - toc.integrate
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings
+  - autorefs
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - pymdownx.snippets
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.details
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
