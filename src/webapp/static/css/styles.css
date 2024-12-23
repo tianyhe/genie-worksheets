@@ -23,6 +23,7 @@ body {
     font-size: 2.5rem;
     font-weight: 800;
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.75rem;
@@ -37,10 +38,10 @@ body {
 /* Action Bar */
 .action-bar {
     background: white;
-    padding: 1.25rem;
+    padding: 0.75rem;
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     display: flex;
     gap: 1rem;
     position: sticky;
@@ -49,11 +50,11 @@ body {
 }
 
 .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     font-weight: 600;
     border-radius: 8px;
     transition: all 0.3s ease;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .btn-primary {
@@ -81,11 +82,11 @@ body {
 /* Spreadsheet Styles */
 .spreadsheet-container {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     overflow: visible;
-    padding: 1.5rem;
-    margin: 1rem 0 2rem 0;
+    padding: 0.75rem;
+    margin: 0.5rem 0 1rem 0;
     position: relative;
     z-index: 10;
 }
@@ -111,14 +112,14 @@ body {
 /* Special column widths */
 .spreadsheet th:first-child,
 .spreadsheet td:first-child {
-    min-width: 50px;
-    width: 50px;
+    min-width: 40px;
+    width: 40px;
 }
 
 .spreadsheet th:nth-child(2),
 .spreadsheet td:nth-child(2) {
-    min-width: 100px;
-    width: 100px;
+    min-width: 80px;
+    width: 80px;
 }
 
 /* Wider columns for code fields */
@@ -132,7 +133,7 @@ body {
 .spreadsheet td:nth-child(15),
 .spreadsheet th:nth-child(16), /* Field Validation */
 .spreadsheet td:nth-child(16) {
-    min-width: 300px;
+    min-width: 250px;
 }
 
 /* Boolean columns (checkboxes) */
@@ -142,14 +143,14 @@ body {
 .spreadsheet td:nth-child(12),
 .spreadsheet th:nth-child(13),
 .spreadsheet td:nth-child(13) {
-    min-width: 100px;
-    width: 100px;
+    min-width: 80px;
+    width: 80px;
     text-align: center;
 }
 
 .spreadsheet th {
     background: #f8fafc;
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     font-weight: 600;
     color: #475569;
     text-align: left;
@@ -159,12 +160,12 @@ body {
     top: 0;
     z-index: 45;
     text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     letter-spacing: 0.05em;
 }
 
 .spreadsheet td {
-    padding: 1rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
     transition: background-color 0.2s ease;
@@ -196,12 +197,12 @@ body {
 /* Input Styles */
 .cell-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.95rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
-    min-height: 42px;
+    min-height: 36px;
     resize: vertical;
     white-space: pre !important;
     overflow-wrap: normal;
@@ -229,6 +230,8 @@ td:nth-child(16) .cell-input {
     overflow-x: auto;
     resize: both;
     display: block;
+    min-height: 36px;
+    padding: 0.5rem 0.75rem;
 }
 
 .cell-input.predicate-input:focus,
@@ -271,12 +274,12 @@ td:nth-child(16) .cell-input.validation-error {
 }
 
 .form-check-input {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1rem;
+    height: 1rem;
     margin: 0;
     cursor: pointer;
     border: 2px solid #cbd5e1;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: all 0.2s ease;
 }
 
@@ -294,7 +297,7 @@ td:nth-child(16) .cell-input.validation-error {
 }
 
 .btn-edit-code {
-    padding: 6px;
+    padding: 4px;
     background: #f1f5f9;
     border: none;
     border-radius: 6px;
@@ -304,8 +307,8 @@ td:nth-child(16) .cell-input.validation-error {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    height: 32px;
+    min-width: 28px;
+    height: 28px;
 }
 
 .btn-edit-code:hover {
@@ -563,7 +566,7 @@ td:nth-child(16) .cell-input.validation-error {
 }
 
 .btn-delete {
-    padding: 8px;
+    padding: 6px;
     background: #fee2e2;
     border: none;
     border-radius: 8px;
@@ -573,8 +576,8 @@ td:nth-child(16) .cell-input.validation-error {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    height: 36px;
+    min-width: 32px;
+    height: 32px;
 }
 
 .btn-delete:hover {
@@ -590,10 +593,14 @@ td:nth-child(16) .cell-input.validation-error {
 }
 
 /* Enum Styles */
-.enum-field td {
+.enum-field {
+    position: relative;
     background-color: #f8fafc;
-    padding-top: 8px;
-    padding-bottom: 8px;
+}
+
+.enum-field td {
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .enum-actions {
@@ -602,8 +609,15 @@ td:nth-child(16) .cell-input.validation-error {
     gap: 8px;
 }
 
+.enum-field .row-actions {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .btn-add-enum {
-    padding: 6px 12px;
+    padding: 4px 8px;
     background: #e0f2fe;
     border: none;
     border-radius: 8px;
@@ -639,4 +653,119 @@ td:nth-child(16) .cell-input.validation-error {
 
 .spreadsheet th {
     z-index: 45;
+}
+
+/* Type Select Styles */
+.type-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.combobox {
+    position: relative;
+    width: 100%;
+}
+
+.type-input {
+    width: 100%;
+    height: 36px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #1e293b;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.type-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Style the datalist dropdown arrow */
+.type-input::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.type-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Ensure datalist options are styled consistently */
+datalist {
+    background-color: #ffffff;
+    color: #1e293b;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+option {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+option:hover {
+    background-color: #f1f5f9;
+}
+
+/* Field row specific styles */
+.field-row td:nth-child(4),  /* Form Name */
+.field-row td:nth-child(15) { /* Form Action */
+    background: #ffffff;
+}
+
+/* Adjust field row cell widths */
+.field-row td:nth-child(5) {  /* Field Predicate becomes first code cell */
+    min-width: 250px;
+}
+
+/* Task row styling */
+.task-row {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9);
+    border-radius: 8px;
+}
+
+.task-row td {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Context Menu Styles */
+.context-menu {
+    position: fixed;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 0.5rem 0;
+    min-width: 160px;
+    z-index: 1000;
+}
+
+.context-menu-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1e293b;
+    transition: all 0.2s ease;
+}
+
+.context-menu-item:hover {
+    background: #f1f5f9;
+}
+
+.context-menu-item svg {
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0.5rem 0;
 } 
