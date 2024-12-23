@@ -4,15 +4,18 @@
 
 > TLDR: Framework for creating reliable conversational agents
 
-Genie is a programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access. Unlike LLMs, Genie provides reliable grounded responses, with controllable agent policies through its expressive specification, Genie Worksheet. In contrast to dialog trees, it is resilient to diverse user queries, helpful with knowledge sources, and offers ease of programming policies through its declarative paradigm.
+Genie is a programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access.
+Unlike LLMs, Genie provides reliable grounded responses, with controllable agent policies through its expressive specification, Genie Worksheet.
+In contrast to dialog trees, it is resilient to diverse user queries, helpful with knowledge sources, and offers ease of programming policies through its declarative paradigm.
 
 ![Genie Worksheets Logo](assets/genie_banner.jpg)
 
 
 !!! tip "When to use Genie Worksheets?"
-    GenieWorksheets excels at handling complex dialogues where the conversation flow depends on user inputs and multiple conditions. You should use GenieWorksheets if you need:
+    GenieWorksheets excels at handling complex dialogues where the agent actively provides assistance to the user.
+You should use GenieWorksheets if you need:
 
-    - Task management integrated with knowledge sources - GenieWorksheets uniquely combines both capabilities.
+    - Task-oriented agents integrated with knowledge - GenieWorksheets uniquely combines both capabilities.
     
     - Mixed-initiative conversations where users can interrupt and switch between tasks seamlessly.
     

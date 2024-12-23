@@ -1,7 +1,8 @@
 // Constants
-const PREDEFINED_TYPES = ['str', 'int', 'float', 'bool', 'date', 'time', 'Enum'];
+const PREDEFINED_TYPES = ['str', 'int', 'float', 'bool', 'date', 'time', 'Enum', "confirm"];
 const BOOLEAN_COLUMNS = [10, 11, 12]; // Don't Ask, Required, Field Confirmation
 const KIND_TYPES = ['WS', 'DB', 'Type'];
+const FIELD_KIND_TYPES = ['input', 'internal', 'output'];
 
 // DOM Elements
 let spreadsheet;
@@ -52,6 +53,25 @@ document.addEventListener('DOMContentLoaded', function() {
             element.setAttribute('data-original-code', element.value);
         }
     });
+
+    // Add context menu handler
+    sheetBody.addEventListener('contextmenu', (e) => {
+        const row = e.target.closest('tr');
+        if (row && !row.classList.contains('enum-field')) {
+            e.preventDefault();
+            createContextMenu(e.pageX, e.pageY, row);
+        }
+    });
+    
+    // Remove context menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.context-menu')) {
+            removeContextMenu();
+        }
+    });
+    
+    // Remove context menu when scrolling
+    document.addEventListener('scroll', removeContextMenu);
 });
 
 // Initialize tooltips
@@ -110,6 +130,28 @@ function initializeEventListeners() {
 
     document.getElementById('processSheet').addEventListener('click', handleProcessSheet);
 
+    document.getElementById('resetSheet').addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset the sheet? This will delete all tasks and fields.')) {
+            sheetBody.innerHTML = '';
+            addFieldBtn.disabled = false;
+            currentTaskRow = sheetBody.lastElementChild;
+        }
+    });
+
+    document.getElementById('downloadJson').addEventListener('click', () => {
+        const sheetData = getSheetData();
+        const jsonString = JSON.stringify(sheetData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'spreadsheet_data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
     // Remove tooltip when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.classList.contains('cell-input')) {
@@ -136,21 +178,55 @@ function initializeEventListeners() {
 
 // Row Creation Functions
 function createTypeSelect() {
-    const select = document.createElement('select');
-    select.className = 'cell-input';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'type-select-wrapper';
+    
+    // Create combobox container
+    const combobox = document.createElement('div');
+    combobox.className = 'combobox';
+    
+    // Create editable input
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cell-input type-input';
+    input.setAttribute('list', 'type-options');
+    input.placeholder = 'Select or enter type';
+    
+    // Create datalist for suggestions
+    const dataList = document.createElement('datalist');
+    dataList.id = 'type-options';
+    
+    // Add predefined types to datalist
     PREDEFINED_TYPES.forEach(type => {
         const option = document.createElement('option');
         option.value = type;
-        option.textContent = type;
-        select.appendChild(option);
+        dataList.appendChild(option);
     });
-    return select;
+    
+    // Add event listeners
+    input.addEventListener('input', (e) => {
+        input.classList.remove('validation-error');
+        removeTooltip();
+    });
+    
+    input.addEventListener('blur', (e) => {
+        if (!input.value.trim()) {
+            input.value = PREDEFINED_TYPES[0];
+        }
+    });
+    
+    combobox.appendChild(input);
+    combobox.appendChild(dataList);
+    wrapper.appendChild(combobox);
+    
+    return wrapper;
 }
 
-function createKindSelect() {
+function createKindSelect(isField = false) {
     const select = document.createElement('select');
     select.className = 'cell-input';
-    KIND_TYPES.forEach(type => {
+    const types = isField ? FIELD_KIND_TYPES : KIND_TYPES;
+    types.forEach(type => {
         const option = document.createElement('option');
         option.value = type.toLowerCase();
         option.textContent = type;
@@ -171,10 +247,19 @@ function createToggle(title) {
 }
 
 // Row Management Functions
-function addNewRow(type) {
+function addNewRow(type, referenceRow = null, position = 'after') {
     const row = document.createElement('tr');
-    const rowNum = sheetBody.children.length + 1;
     row.className = type + '-row';
+    
+    // Calculate row number based on position
+    let rowNum;
+    if (referenceRow) {
+        const visibleRows = Array.from(sheetBody.children).filter(r => !r.classList.contains('enum-field'));
+        const refIndex = visibleRows.indexOf(referenceRow);
+        rowNum = refIndex + (position === 'after' ? 2 : 1);
+    } else {
+        rowNum = sheetBody.children.length + 1;
+    }
     
     row.innerHTML = `
         <td>${rowNum}</td>
@@ -183,16 +268,55 @@ function addNewRow(type) {
 
     if (type === 'task') {
         addTaskCells(row);
+        currentTaskRow = row;
+        addFieldBtn.disabled = false;
     } else {
-        addFieldCells(row);
+        // For fields, find the parent task row
+        let taskRow = referenceRow;
+        while (taskRow && !taskRow.classList.contains('task-row')) {
+            taskRow = taskRow.previousElementSibling;
+        }
+        if (taskRow) {
+            currentTaskRow = taskRow;
+            addFieldBtn.disabled = false;
+            addFieldCells(row);
+        } else {
+            // If no task row found, convert this to a task row
+            row.className = 'task-row';
+            addTaskCells(row);
+            currentTaskRow = row;
+            addFieldBtn.disabled = false;
+        }
     }
 
     addDeleteButton(row, type);
-    sheetBody.appendChild(row);
+
+    // Insert the row at the correct position
+    if (referenceRow) {
+        if (position === 'before') {
+            referenceRow.parentNode.insertBefore(row, referenceRow);
+        } else {
+            // For 'after', insert after any enum rows
+            let insertPoint = referenceRow;
+            while (insertPoint.nextElementSibling && insertPoint.nextElementSibling.classList.contains('enum-field')) {
+                insertPoint = insertPoint.nextElementSibling;
+            }
+            if (insertPoint.nextElementSibling) {
+                insertPoint.parentNode.insertBefore(row, insertPoint.nextElementSibling);
+            } else {
+                insertPoint.parentNode.appendChild(row);
+            }
+        }
+    } else {
+        sheetBody.appendChild(row);
+    }
 
     if (type === 'field') {
         setupEnumHandling(row);
     }
+
+    renumberRows();
+    return row;
 }
 
 function addTaskCells(row) {
@@ -216,10 +340,16 @@ function addTaskCells(row) {
 function addFieldCells(row) {
     const cells = [];
     
-    cells.push('<td><input type="text" class="cell-input" disabled></td>');
-    cells.push('<td><input type="text" class="cell-input" disabled></td>');
+    // cells.push('<td><input type="text" class="cell-input" disabled></td>');
+    // cells.push('<td><input type="text" class="cell-input" disabled></td>');
+    cells.push('<td></td>');
+    cells.push('<td></td>');
+    // cells.push('<td><input type="text" class="cell-input" disabled></td>');
     cells.push('<td><div class="code-cell-wrapper"><textarea class="cell-input predicate-input" placeholder="Field Predicate"></textarea><button class="btn-edit-code" title="Edit code"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></td>');
-    cells.push('<td><input type="text" class="cell-input" placeholder="Kind"></td>');
+    
+    const kindCell = document.createElement('td');
+    kindCell.appendChild(createKindSelect(true));
+    cells.push(kindCell.outerHTML);
     
     const typeCell = document.createElement('td');
     typeCell.appendChild(createTypeSelect());
@@ -234,7 +364,8 @@ function addFieldCells(row) {
     cells.push('<td>' + createToggle('Field Confirmation').outerHTML + '</td>');
     
     cells.push('<td><div class="code-cell-wrapper"><textarea class="cell-input action-input" placeholder="Field Action"></textarea><button class="btn-edit-code" title="Edit code"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></td>');
-    cells.push('<td><input type="text" class="cell-input" disabled></td>');
+    // cells.push('<td><input type="text" class="cell-input" disabled></td>');
+    cells.push('<td></td>');
     cells.push('<td><div class="code-cell-wrapper"><textarea class="cell-input" placeholder="Field Validation"></textarea><button class="btn-edit-code" title="Edit code"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></td>');
     
     row.innerHTML += cells.join('');
@@ -242,10 +373,19 @@ function addFieldCells(row) {
 
 // Enum Handling Functions
 function setupEnumHandling(row) {
-    const typeSelect = row.querySelector('select');
+    const typeInput = row.querySelector('.type-input');
     let enumRow = addEnumValueRow(row, false);
     
-    typeSelect.addEventListener('change', (e) => {
+    typeInput.addEventListener('input', (e) => {
+        if (e.target.value === 'Enum') {
+            enableEnumRow(enumRow);
+        } else {
+            disableEnumRows(row, enumRow);
+        }
+    });
+    
+    // Also check on blur to handle selection from datalist
+    typeInput.addEventListener('blur', (e) => {
         if (e.target.value === 'Enum') {
             enableEnumRow(enumRow);
         } else {
@@ -321,9 +461,11 @@ function getSheetData() {
         if (row.classList.contains('enum-field')) continue;
         
         const rowData = [];
-        const inputs = row.querySelectorAll('input, select');
+        const inputs = row.querySelectorAll('input:not(.enum-value), select');
         for (let input of inputs) {
-            if (input.type === 'checkbox') {
+            if (input.classList.contains('type-input')) {
+                rowData.push(input.value.trim());
+            } else if (input.type === 'checkbox') {
                 rowData.push(input.checked ? 'TRUE' : 'FALSE');
             } else {
                 rowData.push(input.value.trim());
@@ -331,7 +473,7 @@ function getSheetData() {
         }
         data.push(rowData);
 
-        if (row.querySelector('select')?.value === 'Enum') {
+        if (row.querySelector('.type-input')?.value === 'Enum') {
             addEnumValuesToData(row, data);
         }
     }
@@ -562,20 +704,21 @@ function setupEnumRowHandlers(enumRow, fieldRow) {
         newEnumRow.style.display = ''; // Make sure new rows are visible
     });
 
-    // Add delete button
+    // Add delete button with same style as row delete button
     const deleteButton = document.createElement('div');
     deleteButton.className = 'row-actions';
+    deleteButton.style.position = 'relative';
+    deleteButton.style.right = '0';
     deleteButton.innerHTML = `
         <button class="btn-delete" title="Delete enum value">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 6l12 12M6 18L18 6"/>
             </svg>
         </button>
     `;
-    enumRow.appendChild(deleteButton);
 
     // Add delete functionality
-    const deleteBtn = enumRow.querySelector('.btn-delete');
+    const deleteBtn = deleteButton.querySelector('.btn-delete');
     deleteBtn.addEventListener('click', () => {
         // Only remove if there's more than one visible enum value row
         const enumRows = getEnumRows(fieldRow);
@@ -584,6 +727,8 @@ function setupEnumRowHandlers(enumRow, fieldRow) {
             enumRow.remove();
         }
     });
+
+    enumRow.appendChild(deleteButton);
 }
 
 function addEnumValuesToData(row, data) {
@@ -781,5 +926,85 @@ function showLintingErrors(result) {
         }
         
         lintingErrors.appendChild(errorDiv);
+    }
+}
+
+// Context Menu Functions
+let activeContextMenu = null;
+
+function createContextMenu(x, y, row) {
+    removeContextMenu();
+    
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    
+    menu.innerHTML = `
+        <div class="context-menu-item" data-action="add-task-above">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Task Above
+        </div>
+        <div class="context-menu-item" data-action="add-field-above">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Field Above
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="add-task-below">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Task Below
+        </div>
+        <div class="context-menu-item" data-action="add-field-below">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Field Below
+        </div>
+    `;
+    
+    // Add event listeners for menu items
+    menu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const action = e.currentTarget.getAttribute('data-action');
+            handleContextMenuAction(action, row);
+            removeContextMenu();
+        });
+    });
+    
+    document.body.appendChild(menu);
+    activeContextMenu = menu;
+    
+    // Adjust menu position if it goes off screen
+    const menuRect = menu.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    if (menuRect.right > windowWidth) {
+        menu.style.left = `${windowWidth - menuRect.width - 10}px`;
+    }
+    if (menuRect.bottom > windowHeight) {
+        menu.style.top = `${windowHeight - menuRect.height - 10}px`;
+    }
+}
+
+function handleContextMenuAction(action, row) {
+    const [, type, position] = action.split('-');
+    addNewRow(type, row, position);
+}
+
+function insertNewRow(type, referenceRow, position) {
+    return addNewRow(type, referenceRow, position);
+}
+
+function removeContextMenu() {
+    if (activeContextMenu) {
+        activeContextMenu.remove();
+        activeContextMenu = null;
     }
 } 
