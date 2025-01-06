@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="GenieWorksheets: A Framework for Creating Reliable Conversational Agents">
+  <meta property="og:title" content="GenieWorksheets"/>
+  <meta property="og:description" content="A programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access"/>
+  <meta property="og:url" content="https://stanford-oval.github.io/genie-worksheets"/>
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <meta property="og:image" content="static/images/banner.jpg" />
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+
+
+  <meta name="twitter:title" content="GenieWorksheets">
+  <meta name="twitter:description" content="A programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access">
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+  <meta name="twitter:image" content="static/images/banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="conversational agents, LLM, task-oriented agents, knowledge agents, natural language processing">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>Genie Worksheets</title>
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+
+  <style>
+    table td:not(:first-child) {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Genie Worksheets: Coding Reliable LLM-based Integrated Task and Knowledge Agents</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://harshitjoshi.com" target="_blank">Harshit Joshi</a>,</span>
+                <span class="author-block">
+                  <a href="https://george1459.github.io/" target="_blank">Shicheng Liu</a>,</span>
+                  <span class="author-block">
+                    <a href="#" target="_blank">James Chen</a>,</span>
+                  <span class="author-block">
+                    <a href="#" target="_blank">Robert Weigle</a>,</span>
+                  <span class="author-block">
+                    <a href="https://suif.stanford.edu/~lam/" target="_blank">Monica S. Lam</a>
+                  </span>
+                  </div>
+
+                  <div class="is-size-5 publication-authors">
+                    <span class="author-block">Stanford OVAL lab <img src="static/images/oval-logo.png" alt="OVAL Logo" style="height: 1.5em; vertical-align: middle;"> <br>Stanford University</span>
+                  </div>
+
+                  <div class="column has-text-centered">
+                    <div class="publication-links">
+                         <!-- Arxiv PDF link -->
+                      <span class="link-block">
+                        <a href="https://arxiv.org/pdf/2407.05674.pdf" target="_blank"
+                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="icon">
+                          <i class="fas fa-file-pdf"></i>
+                        </span>
+                        <span>Paper</span>
+                      </a>
+                    </span>
+
+                    <!-- Github link -->
+                    <span class="link-block">
+                      <a href="https://github.com/stanford-oval/genie-worksheets" target="_blank"
+                      class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon">
+                        <i class="fab fa-github"></i>
+                      </span>
+                      <span>Code</span>
+                    </a>
+                  </span>
+
+                <!-- ArXiv abstract Link -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2407.05674" target="_blank" 
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+
+              <!-- Docs Link -->
+              <span class="link-block">
+                <a href="#" target="_blank"
+                class="external-link button is-normal is-rounded is-dark disabled">
+                <span class="icon">
+                  <i class="fa fa-book"></i>
+                </span>
+                <span>Docs</span>
+              </a>
+            </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Teaser video-->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video poster="" id="tree" autoplay controls muted loop height="100%">
+        <!-- Your video here -->
+        <source src="static/videos/genie_banner_video.mp4"
+        type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        GenieWorksheets is a programmable framework for creating reliable task-oriented conversational agents that can handle complex user interactions and knowledge access.
+      </h2>
+    </div>
+  </div>
+</section>
+<!-- End teaser video -->
+
+<!-- Paper abstract -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            LLMs present an opportunity to create automated assistants that can help users navigate 
+            complex tasks. However, existing approaches have limitations in: (i) handling conditional logic, (ii) 
+            integrating knowledge sources, and (iii) consistently following instructions. Researchers and industry 
+            professionals often employ ad-hoc pipelines to construct conversational agents. These pipelines aim to
+            maintain context, address failure cases, and minimize hallucinations, yet frequently fail to achieve these
+            objectives.</p>
+          </p>
+          <p> 
+            We present <i>Genie</i> - a programmable framework for creating conversational agents
+            that are designed to handle complex user interactions and knowledge queries. <b>Unlike LLMs</b>, <i>Genie</i>
+            provides reliable grounded responses, with controllable agent policies through its expressive specification,
+            <i>Genie Worksheet</i>. <b>In contrast to dialog trees</b>, it is resilient to diverse user queries, helpful
+            with knowledge sources, and offers ease of programming policies through its declarative paradigm.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+
+<!-- Features Section -->
+<section class="section hero is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="content has-text-justified">
+        <h2 class="title is-3">Features</h2>
+        <p>
+        <ol>
+          <li><b>High-Level Declarative Specification:</b> Allows developers to easily define variables and actions for conversations through a spreadsheet-like format, without needing to manually code complex dialogue trees or manage LLM prompts.</li>
+          <li><b>Integrated Knowledge and Task Handling:</b> Uniquely combines the ability to handle both structured database queries and API calls in a single conversation flow, letting users seamlessly mix questions with task completion.</li>
+          <li><b>Reliable State Tracking:</b> Maintains conversation context through a formal dialogue state representation, reducing hallucinations and repetitive questioning common in pure LLM approaches.</li>
+          <li><b>Programmable Agent Policies:</b> Provides fine-grained control over agent behavior through explicit policy definitions, while still maintaining natural conversation flow and handling unexpected user inputs.</li>
+        </ol>
+        </p>
+      </div>
+      
+    </div>
+  </div>
+</div>
+</section>
+<!-- Features Section -->
+
+
+
+
+<!-- Comparion Section -->
+<section class="section hero is-small is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="content has-text-justified">
+        <p>
+          <table>
+            <tr>
+              <th>Features</th>
+              <th>Pure LLMs</th>
+              <th>Dialog Trees</th>
+              <th>GenieWorksheets</th>
+            </tr>
+            <tr>
+              <td>Handles unexpected queries</td>
+              <td>✅</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Consistent output</td>
+              <td>❌</td>
+              <td>✅</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Knowledge integration</td>
+              <td>✅</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Easy maintenance</td>
+              <td>❌</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Natural conversations</td>
+              <td>✅</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Control over responses</td>
+              <td>❌</td>
+              <td>✅</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Complex logic support</td>
+              <td>❌</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Low hallucination risk</td>
+              <td>❌</td>
+              <td>✅</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Handles interruptions</td>
+              <td>✅</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Programmable behaviors</td>
+              <td>❌</td>
+              <td>✅</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Dynamic field dependencies</td>
+              <td>❌</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>Development speed</td>
+              <td>✅</td>
+              <td>❌</td>
+              <td>✅</td>
+            </tr>
+          </table>
+        </p>
+      </div>
+      
+    </div>
+  </div>
+</div>
+</section>
+<!-- Comparison Section -->
+
+<!-- Results Section -->
+<section class="section hero is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="content has-text-justified">
+        <h2 class="title is-3">Results</h2>
+        <p>
+          We perform a real user study with 62 users across three domains. We choose three diverse applications with 
+          varying complexities. Compared to the 3 StarV2 domains, these real-world applications are much more complicated, as shown in Table 5 in the Appendix.
+          <ol>
+            <li>
+              <b>Restaurant Reservation:</b> Making a restaurant reservation requires finding a suitable restaurant and
+              providing booking information to complete a transaction. We use the real-life dataset containing
+              restaurants from Yelp.com.
+            </li>
+            <li>
+              <b>Ticket Submission:</b> University portal contains various tasks categorized under different sections and 
+              subsections, posing a navigational challenge for students seeking to locate the appropriate link.
+              Additionally,  they often contain a vast corpus of free-text data, which students must peruse before 
+              submitting a ticket. We evaluate agents' capability to handle nested webpages with predicates and subsequent actions.
+            </li>
+            <li>
+              <b>Course Enrollment:</b> Combines hybrid data sources to search for course details and fill out complicated nested
+              forms. The assistants allow students to ask questions about course requirements, student reviews,
+              and ratings while filling out their enrollment forms. We collect a real-life dataset containing courses
+              from the Computer Science program, with 4 tables (courses, offerings, ratings, and programs).
+            </li>
+          </ol>
+        
+          We find that Genie performs significantly better than GPT-4 with Function Calling ability on the three applicable metrics.
+          <img src="static/images/genie_results.png" alt="Results" style="width: 100%;">
+        </p>
+      </div>
+      
+    </div>
+  </div>
+</div>
+</section>
+<!-- Results Section -->
+
+
+
+
+
+
+
+
+<!--BibTex citation -->
+  <section class="section hero is-small is-light">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>@article{genieworksheets,
+  title={Coding Reliable LLM-based Integrated Task and Knowledge Agents with GenieWorksheets},
+  author={Joshi, Harshit and Liu, Shicheng and Chen, James and Weigle, Robert and Lam, Monica S},
+  journal={arXiv preprint arXiv:2407.05674},
+  year={2024}
+}</code></pre>
+    </div>
+</section>
+<!--End BibTex citation -->
+
+<section class="section hero is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <div style="white-space: nowrap;">
+          <span>A <a href="https://oval.cs.stanford.edu/" target="_blank">Stanford Open Virtual Assistant Lab</a></span>
+          <img src="static/images/oval-logo.png" alt="OVAL Logo" style="height: 1.5em; vertical-align: middle;">
+          <span>work.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Statcounter tracking code -->
+  
+<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+
+  </body>
+  </html>
