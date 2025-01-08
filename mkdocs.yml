@@ -1,5 +1,5 @@
 site_name: GenieWorksheets
-site_url: https://worksheets.genie.stanford.edu/
+site_url: https://ws.genie.stanford.edu/
 repo_url: https://github.com/stanford-oval/genie-worksheets/
 nav:
   - Home:
@@ -23,7 +23,7 @@ nav:
       - Knowledge: api/knowledge.md
       - From Spreadsheet: api/from_spreadsheet.md
     - Utility Modules: api/utils.md
-    
+site_dir: web/docs/
 
 theme:
   name: material
