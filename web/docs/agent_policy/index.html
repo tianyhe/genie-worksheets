@@ -1,0 +1,1616 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ws.genie.stanford.edu/agent_policy/">
+      
+      
+        <link rel="prev" href="../dialogue_state/">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.48">
+    
+    
+      
+        <title>Agent Policy - GenieWorksheets</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#understanding-agent-policy-in-genie-framework" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="GenieWorksheets" class="md-header__button md-logo" aria-label="GenieWorksheets" data-md-component="logo">
+      
+  <img src="../assets/genie_worksheets_circle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GenieWorksheets
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Agent Policy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stanford-oval/genie-worksheets/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../examples/" class="md-tabs__link">
+          
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/environment/" class="md-tabs__link">
+          
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="GenieWorksheets" class="md-nav__button md-logo" aria-label="GenieWorksheets" data-md-component="logo">
+      
+  <img src="../assets/genie_worksheets_circle.png" alt="logo">
+
+    </a>
+    GenieWorksheets
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stanford-oval/genie-worksheets/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating an Agent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prompt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating Prompts
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Core Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dialogue_state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dialogue State
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Agent Policy
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Agent Policy
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 What is Agent Policy?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-a-symbolic-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤔 Why Use a Symbolic Agent Policy?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-agent-policy-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ How Agent Policy Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ How Agent Policy Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-steps-of-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Core Steps of Agent Policy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-agent-acts" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎭 Types of Agent Acts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎭 Types of Agent Acts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-acts-in-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Agent Acts in Action
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-act-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Common Act Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#act-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Act Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎨 Response Generation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎬 Example Flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benefits-of-genies-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌟 Benefits of Genie's Agent Policy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Performance Impact
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Debugging Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Learning Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../examples/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    
+  
+  
+    <a href="../api/environment/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 What is Agent Policy?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-a-symbolic-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤔 Why Use a Symbolic Agent Policy?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-agent-policy-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ How Agent Policy Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ How Agent Policy Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-steps-of-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Core Steps of Agent Policy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-agent-acts" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎭 Types of Agent Acts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎭 Types of Agent Acts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-acts-in-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Agent Acts in Action
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-act-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Common Act Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#act-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Act Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎨 Response Generation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎬 Example Flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benefits-of-genies-agent-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌟 Benefits of Genie's Agent Policy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Performance Impact
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Debugging Tips
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎓 Learning Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="understanding-agent-policy-in-genie-framework">🤖 Understanding Agent Policy in Genie Framework</h1>
+<div class="admonition tip">
+<p class="admonition-title">Quick Summary</p>
+<p>Agent Policy is the brain 🧠 of the Genie framework that makes smart decisions about how to respond to users. Think of it as a very organized manager that always knows what to do next!</p>
+</div>
+<h2 id="what-is-agent-policy">🎯 What is Agent Policy?</h2>
+<p>Agent Policy is a core component of the Genie framework that determines how the conversational agent should respond to user inputs. Unlike traditional LLM approaches that rely on the model to directly generate responses, Genie uses a symbolic module to compute agent responses in a more controlled and reliable way.</p>
+<div class="admonition note">
+<p class="admonition-title">Key Difference</p>
+<p>Traditional LLMs: "Let me generate whatever feels right" 🎲</p>
+<p>Genie Agent Policy: "Let me follow these specific rules step by step" ✅</p>
+</div>
+<h2 id="why-use-a-symbolic-agent-policy">🤔 Why Use a Symbolic Agent Policy?</h2>
+<p>There are two main reasons:</p>
+<ol>
+<li>
+<p><strong>Deterministic Responses</strong> 🎯</p>
+<ul>
+<li>By providing specific agent acts, the LLM generates responses that are governed by the policy</li>
+<li>No more random or unpredictable responses!</li>
+</ul>
+</li>
+<li>
+<p><strong>Better Instruction Following</strong> 📝</p>
+<ul>
+<li>LLMs often struggle with following complex developer-defined policies</li>
+<li>A symbolic module helps ensure all instructions are properly followed</li>
+</ul>
+</li>
+</ol>
+<h2 id="how-agent-policy-works">⚙️ How Agent Policy Works</h2>
+<div class="admonition abstract">
+<p class="admonition-title">Input/Output Flow</p>
+<p><strong>Inputs</strong> 📥
+- Previous dialogue state
+- Updated dialogue state from the parser
+- Worksheet specification</p>
+<p><strong>Outputs</strong> 📤
+- New dialogue state
+- Set of agent acts to be performed</p>
+</div>
+<h3 id="core-steps-of-agent-policy">🔄 Core Steps of Agent Policy</h3>
+<pre class="mermaid"><code>graph TD
+    A[Start] --&gt; B[Handle KB Queries]
+    B --&gt; C[Process Field Assignments]
+    C --&gt; D[Execute Complete Tasks]
+    D --&gt; E[Request Missing Information]
+    E --&gt; F[End]</code></pre>
+<ol>
+<li>
+<p><strong>Handle Knowledge Base (KB) Queries</strong> 🔍
+    <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">new_kb_record</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">missing_required_parameters</span><span class="p">:</span>
+        <span class="n">ask_user</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">execute_query</span><span class="p">()</span>
+        <span class="n">report_results</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Process Field Assignments</strong> ✍️
+    <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">new_assignments</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">needs_confirmation</span><span class="p">:</span>
+        <span class="n">ask_user_to_confirm</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">execute_actions</span><span class="p">()</span>
+        <span class="n">update_state</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Execute Complete Tasks</strong> ✅
+    <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">complete_tasks</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">executed</span><span class="p">:</span>
+        <span class="n">execute_worksheet_actions</span><span class="p">()</span>
+        <span class="n">update_state</span><span class="p">()</span>
+        <span class="n">add_agent_acts</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Request Missing Information</strong> ❓
+    <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">required_fields</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">is_empty</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+        <span class="n">ask_user</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">break</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h2 id="types-of-agent-acts">🎭 Types of Agent Acts</h2>
+<div class="admonition info">
+<p class="admonition-title">The Five Core Acts</p>
+<ol>
+<li>
+<p><strong>Report</strong> 📊 
+    <div class="highlight"><pre><span></span><code><span class="n">Report</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>Reports query results to user</li>
+<li>Example: "Here are the restaurants I found..."</li>
+<li>Used for sharing KB query results</li>
+</ul>
+</li>
+<li>
+<p><strong>Confirm</strong> ✔️ 
+    <div class="highlight"><pre><span></span><code><span class="n">AskForFieldConfirmation</span><span class="p">(</span><span class="n">worksheet</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>Verifies field values with user</li>
+<li>Example: "Just to confirm, you want to book for 7 PM?"</li>
+<li>Ensures data accuracy</li>
+</ul>
+</li>
+<li>
+<p><strong>Say</strong> 💬 
+    <div class="highlight"><pre><span></span><code><span class="n">Say</span><span class="p">(</span><span class="n">utterance</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>Delivers direct messages</li>
+<li>Example: "I'll help you book a restaurant."</li>
+<li>Used for general communication</li>
+</ul>
+</li>
+<li>
+<p><strong>Propose</strong> 💡 
+    <div class="highlight"><pre><span></span><code><span class="n">ProposeWorksheet</span><span class="p">(</span><span class="n">worksheet</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>Suggests new tasks/actions</li>
+<li>Example: "Would you like to make a reservation?"</li>
+<li>Includes initial parameter values</li>
+</ul>
+</li>
+<li>
+<p><strong>Ask</strong> ❓ 
+    <div class="highlight"><pre><span></span><code><span class="n">AskField</span><span class="p">(</span><span class="n">worksheet</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">field_description</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>Requests specific information</li>
+<li>Example: "What date would you like to book for?"</li>
+<li>Includes field description</li>
+</ul>
+</li>
+</ol>
+</div>
+<h3 id="agent-acts-in-action">🎯 Agent Acts in Action</h3>
+<div class="admonition example">
+<p class="admonition-title">Restaurant Booking Example</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Initial Search</span>
+<span class="p">[</span>
+    <span class="n">Report</span><span class="p">(</span>
+        <span class="n">query</span><span class="o">=</span><span class="s2">&quot;looking for restaurants in SF&quot;</span><span class="p">,</span>
+        <span class="n">answer</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Nice Place&quot;</span><span class="p">,</span> <span class="s2">&quot;Good Food&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Proposing Booking</span>
+<span class="p">[</span>
+    <span class="n">ProposeWorksheet</span><span class="p">(</span>
+        <span class="n">worksheet</span><span class="o">=</span><span class="s2">&quot;BookRestaurant&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;restaurant&quot;</span><span class="p">:</span> <span class="s2">&quot;Nice Place&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Gathering Details</span>
+<span class="p">[</span>
+    <span class="n">AskField</span><span class="p">(</span>
+        <span class="n">worksheet</span><span class="o">=</span><span class="s2">&quot;booking&quot;</span><span class="p">,</span>
+        <span class="n">field</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Preferred booking date&quot;</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Confirming Details</span>
+<span class="p">[</span>
+    <span class="n">AskForFieldConfirmation</span><span class="p">(</span>
+        <span class="n">worksheet</span><span class="o">=</span><span class="s2">&quot;booking&quot;</span><span class="p">,</span>
+        <span class="n">field</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="s2">&quot;19:00&quot;</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+</code></pre></div>
+</div>
+<h3 id="common-act-sequences">🔄 Common Act Sequences</h3>
+<div class="admonition tip">
+<p class="admonition-title">Typical Flows</p>
+<ol>
+<li>
+<p><strong>Search &amp; Book Flow</strong> 📝
+    <div class="highlight"><pre><span></span><code><span class="c1"># 1. Report search results</span>
+<span class="n">Report</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+<span class="c1"># 2. Propose booking</span>
+<span class="n">ProposeWorksheet</span><span class="p">(</span><span class="s2">&quot;BookRestaurant&quot;</span><span class="p">,</span> <span class="p">{</span><span class="o">...</span><span class="p">})</span>
+<span class="c1"># 3. Ask for details</span>
+<span class="n">AskField</span><span class="p">(</span><span class="s2">&quot;booking&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">)</span>
+<span class="c1"># 4. Confirm final details</span>
+<span class="n">AskForFieldConfirmation</span><span class="p">(</span><span class="s2">&quot;booking&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Information Query Flow</strong> 🔍
+    <div class="highlight"><pre><span></span><code><span class="c1"># 1. Report answer</span>
+<span class="n">Report</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+<span class="c1"># 2. Ask if more info needed</span>
+<span class="n">Say</span><span class="p">(</span><span class="s2">&quot;Would you like to know anything else?&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Modification Flow</strong> ✏️
+    <div class="highlight"><pre><span></span><code><span class="c1"># 1. Confirm current value</span>
+<span class="n">AskForFieldConfirmation</span><span class="p">(</span><span class="n">worksheet</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+<span class="c1"># 2. Ask for new value</span>
+<span class="n">AskField</span><span class="p">(</span><span class="n">worksheet</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+<span class="c1"># 3. Confirm change</span>
+<span class="n">Report</span><span class="p">(</span><span class="s2">&quot;update_status&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ol>
+</div>
+<h3 id="act-parameters">⚙️ Act Parameters</h3>
+<div class="admonition abstract">
+<p class="admonition-title">Parameter Details</p>
+<ol>
+<li>
+<p><strong>Worksheet</strong> 📋</p>
+<ul>
+<li>The form/task being handled</li>
+<li>Examples: BookRestaurant, CourseEnroll</li>
+<li>Must be a valid worksheet type</li>
+</ul>
+</li>
+<li>
+<p><strong>Field</strong> 🏷️</p>
+<ul>
+<li>Specific data point needed</li>
+<li>Examples: date, time, guests</li>
+<li>Must exist in worksheet</li>
+</ul>
+</li>
+<li>
+<p><strong>Description</strong> 📝</p>
+<ul>
+<li>User-friendly field explanation</li>
+<li>Helps generate clear questions</li>
+<li>Should be descriptive</li>
+</ul>
+</li>
+<li>
+<p><strong>Value</strong> 💡</p>
+<ul>
+<li>Current or proposed value</li>
+<li>Used in confirmations</li>
+<li>Must match field type</li>
+</ul>
+</li>
+</ol>
+</div>
+<h3 id="response-generation">🎨 Response Generation</h3>
+<div class="admonition info">
+<p class="admonition-title">Response Guidelines</p>
+<ol>
+<li>
+<p><strong>Formatting</strong> 📝</p>
+<ul>
+<li>Be polite and friendly</li>
+<li>Use conversation context</li>
+<li>Keep responses natural</li>
+</ul>
+</li>
+<li>
+<p><strong>Priority</strong> ⚡
+    <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">agent_acts</span><span class="p">:</span>
+    <span class="c1"># Always perform listed actions first</span>
+    <span class="n">execute_acts_in_order</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Then handle direct responses</span>
+    <span class="n">respond_to_user</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Context</strong> 🔄</p>
+<ul>
+<li>Reference previous states</li>
+<li>Maintain conversation flow</li>
+<li>Use appropriate formality</li>
+</ul>
+</li>
+</ol>
+</div>
+<hr />
+<div class="admonition quote">
+<p class="admonition-title">Remember</p>
+<p>Agent acts are the building blocks of conversation - they help create structured, reliable, and natural interactions! 🌟</p>
+</div>
+<h2 id="example-flow">🎬 Example Flow</h2>
+<div class="admonition example">
+<p class="admonition-title">Restaurant Booking Scenario</p>
+<div class="highlight"><pre><span></span><code>User: &quot;I want to book a romantic restaurant in London&quot; 🍽️
+
+Agent Policy Process:
+1. 🔍 Creates KB record to search restaurants
+2. ✨ Checks required parameters (date, time needed)
+3. ❓ Asks user: &quot;What date would you like to book for?&quot;
+4. ⏰ After getting date, asks for time
+5. 🎉 Once all parameters are present:
+   - Executes restaurant search
+   - Reports matching restaurants
+   - Proposes booking task with found restaurant
+</code></pre></div>
+</div>
+<h2 id="benefits-of-genies-agent-policy">🌟 Benefits of Genie's Agent Policy</h2>
+<div class="admonition success">
+<p class="admonition-title">Key Advantages</p>
+<ol>
+<li><strong>Reliable Context Management</strong> 🧠<ul>
+<li>Never forgets important conversation details</li>
+</ul>
+</li>
+<li><strong>Controlled Flow</strong> 🎮<ul>
+<li>Ensures all required information is collected</li>
+</ul>
+</li>
+<li><strong>Predictable Behavior</strong> 🎯<ul>
+<li>Follows developer-defined rules consistently</li>
+</ul>
+</li>
+<li><strong>Mixed Initiative Handling</strong> 🤝<ul>
+<li>Handles both user and system initiatives effectively</li>
+</ul>
+</li>
+</ol>
+</div>
+<h2 id="performance-impact">📊 Performance Impact</h2>
+<div class="admonition tip">
+<p class="admonition-title">Real User Study Results</p>
+<p>Genie's agent policy achieved impressive results:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Score</th>
+<th>vs GPT-4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Execution Accuracy</td>
+<td>86.5%</td>
+<td>+21.1%</td>
+</tr>
+<tr>
+<td>Dialog Act Accuracy</td>
+<td>89.2%</td>
+<td>+20.1%</td>
+</tr>
+<tr>
+<td>Goal Completion Rate</td>
+<td>82.8%</td>
+<td>+61.0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="best-practices">🚀 Best Practices</h2>
+<div class="admonition warning">
+<p class="admonition-title">Common Pitfalls to Avoid</p>
+<ul>
+<li>Don't skip confirmation steps for critical actions</li>
+<li>Always handle missing required fields</li>
+<li>Keep track of conversation state</li>
+<li>Handle user interruptions gracefully</li>
+</ul>
+</div>
+<h2 id="debugging-tips">🔍 Debugging Tips</h2>
+<div class="admonition tip">
+<p class="admonition-title">Troubleshooting Guide</p>
+<ol>
+<li>Check dialogue state consistency</li>
+<li>Verify all required fields are being tracked</li>
+<li>Monitor agent act sequences</li>
+<li>Review KB query results</li>
+<li>Validate field assignments</li>
+</ol>
+</div>
+<h2 id="learning-resources">🎓 Learning Resources</h2>
+<div class="admonition info">
+<p class="admonition-title">Further Reading</p>
+<ul>
+<li><a href="https://github.com/stanford-oval/genie-worksheets">Genie Framework Documentation</a></li>
+<li><a href="https://arxiv.org/html/2407.05674v2">Research Paper</a></li>
+<li><a href="https://github.com/stanford-oval/genie-worksheets/examples">Example Implementations</a></li>
+</ul>
+</div>
+<hr />
+<div class="admonition quote">
+<p class="admonition-title">Remember</p>
+<p>The power of Genie's Agent Policy lies in its ability to maintain structure while being flexible enough to handle natural conversations! 🌟 </p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../dialogue_state/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dialogue State">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Dialogue State
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../examples/" class="md-footer__link md-footer__link--next" aria-label="Next: List of Examples">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                List of Examples
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.expand", "navigation.path", "navigation.prune", "navigation.indexes", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "toc.follow", "navigation.footer", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>
