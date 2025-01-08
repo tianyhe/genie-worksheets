@@ -39,20 +39,20 @@ You should use GenieWorksheets if you need:
 
 ## :vs: Comparative Analysis
 
-| Feature | GenieWorksheets | Pure LLMs | Dialog Trees |
-|---------|----------------|------------|--------------|
-| Handles unexpected queries | :white_check_mark: | :white_check_mark: | :x: |
-| Consistent output | :white_check_mark: | :x: | :white_check_mark: |
-| Knowledge integration | :white_check_mark: | :white_check_mark: | :x: |
-| Easy maintenance | :white_check_mark: | :x: | :x: |
-| Natural conversations | :white_check_mark: | :white_check_mark: | :x: |
-| Control over responses | :white_check_mark: | :x: | :white_check_mark: |
-| Complex logic support | :white_check_mark: | :x: | :x: |
-| Low hallucination risk | :white_check_mark: | :x: | :white_check_mark: |
-| Handles interruptions | :white_check_mark: | :white_check_mark: | :x: |
-| Programmable behaviors | :white_check_mark: | :x: | :white_check_mark: |
-| Dynamic field dependencies | :white_check_mark: | :x: | :x: |
-| Development speed | :white_check_mark: | :white_check_mark: | :x: |
+
+| Feature                  | Pure LLMs | Dialog Trees | GenieWorksheets |
+|--------------------------|-----------|--------------|----------------|
+| Handles unexpected queries | :white_check_mark: | :x: | :white_check_mark: |
+| Reliable output        | :x:       | :white_check_mark: | :white_check_mark: |
+| Knowledge integration    | :white_check_mark: | :x: | :white_check_mark: |
+| Natural conversations    | :white_check_mark: | :x: | :white_check_mark: |
+| Control over responses   | :x:       | :white_check_mark: | :white_check_mark: |
+| Complex logic support    | :x:       | :white_check_mark: | :white_check_mark: |
+| Low hallucination risk    | :x:       | :white_check_mark: | :white_check_mark: |
+| Handles interruptions    | :white_check_mark: | :x: | :white_check_mark: |
+| Programmable behaviors   | :x:       | :white_check_mark: | :white_check_mark: |
+| Dynamic field dependencies | :x:       | :white_check_mark: | :white_check_mark: |
+| Development speed        | :white_check_mark: | :x: | :white_check_mark: |
 
 
 ## :books: Research Paper
