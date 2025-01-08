@@ -1,3 +1,10 @@
+"""Utility functions for handling Genie worksheet annotations and context management.
+
+This module provides utilities for managing and formatting Genie worksheet annotations,
+handling different types of answers, and preparing context for semantic parsing and
+dialogue interactions.
+"""
+
 import json
 
 from loguru import logger
@@ -6,6 +13,17 @@ from worksheets.environment import Answer, GenieType, GenieWorksheet, find_list_
 
 
 def handle_genie_type(key, value, context, response_generator):
+    """Processes a Genie type value and generates its schema representation.
+
+    Args:
+        key (str): The key/name of the Genie type value.
+        value (Union[GenieType, Answer, GenieWorksheet]): The value to process.
+        context: The context object containing variable information.
+        response_generator (bool): Flag indicating whether to include response generation info.
+
+    Returns:
+        str: The schema representation of the Genie type value, or None if not applicable.
+    """
     schema = ""
     if isinstance(value, GenieType):
         return
@@ -81,6 +99,15 @@ def handle_genie_type(key, value, context, response_generator):
 
 
 def get_context_schema(context, response_generator=False):
+    """Generates a schema representation of the given context.
+
+    Args:
+        context: The context object containing variables and their values.
+        response_generator (bool, optional): Flag to include response generation info. Defaults to False.
+
+    Returns:
+        str: A string representation of the context schema with escaped backslashes removed.
+    """
     schema = ""
 
     for key, value in context.context.items():
@@ -102,6 +129,16 @@ def get_context_schema(context, response_generator=False):
 
 
 def get_agent_action_schemas(agent_acts, *args, **kwargs):
+    """Converts agent actions into their schema representations.
+
+    Args:
+        agent_acts: List of agent actions to convert.
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+
+    Returns:
+        list: List of string representations of agent actions.
+    """
     agent_acts_schema = []
     if agent_acts:
         for act in agent_acts:
@@ -111,6 +148,16 @@ def get_agent_action_schemas(agent_acts, *args, **kwargs):
 
 
 def prepare_context_input(bot, dlg_history, current_dlg_turn):
+    """Prepares context input for dialogue processing.
+
+    Args:
+        bot: The bot instance containing context and configuration.
+        dlg_history: List of previous dialogue turns.
+        current_dlg_turn: The current dialogue turn being processed.
+
+    Returns:
+        tuple: A tuple containing (state_schema, agent_acts, agent_utterance).
+    """
     if len(dlg_history):
         state_schema = get_context_schema(bot.context)
         agent_acts = json.dumps(
@@ -127,6 +174,17 @@ def prepare_context_input(bot, dlg_history, current_dlg_turn):
 
 
 def prepare_semantic_parser_input(bot, dlg_history, current_dlg_turn):
+    """Prepares input for semantic parsing by gathering necessary context and schemas.
+
+    Args:
+        bot: The bot instance containing worksheets and database models.
+        dlg_history: List of previous dialogue turns.
+        current_dlg_turn: The current dialogue turn being processed.
+
+    Returns:
+        tuple: A tuple containing (state_schema, agent_acts, agent_utterance,
+               available_worksheets_text, available_dbs_text).
+    """
     state_schema, agent_acts, agent_utterance = prepare_context_input(
         bot, dlg_history, current_dlg_turn
     )

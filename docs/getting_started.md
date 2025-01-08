@@ -11,6 +11,7 @@ Our worksheet design is inspired by the versatility of webforms.
 Modern websites contain multiple fields which can be optional, tabs for selection of task, and pop-up windows that 
 depend on previous user responses. 
 There are two kinds of worksheets: 
+
 - task worksheet: To guide the conversation and achieve goals
 - knowledge base worksheet: To answer users questions and assist them in making decisions.
 
@@ -23,6 +24,7 @@ There are two kinds of worksheets:
 
 #### Worksheet Attributes
 A task worksheet has the following attributes for a Task worksheet:
+
 - **WS Predicate**: indicates when a task worksheet should be activated based on values of other fields
 - **WS Name**: the name of the worksheet. Used by semantic parser.
 - **WS Kind**: Should be set to "Task". Defines that this is a Task type worksheet.
@@ -32,19 +34,30 @@ The actions are triggered when all the required parameters for a task are assign
 
 **WS Action examples**
 Call external API to fetch information or post
-```python
-book_restaurant(self.restaurant_name, self.date, self.num_people, self.time, self.special_instructions)
-```
 
-Perform task based on value of a field
-```python
-if self.confirm:
-    say("Thank you")
-```
+!!! tip "Example for WS Action"
+    Perform actions once the user has provided all the required information: If you want to book a restaurant, the agent will call the `book_restaurant` function.
+    ```python
+    book_restaurant(
+        self.restaurant_name, 
+        self.date, 
+        self.num_people, 
+        self.time, 
+        self.special_instructions
+    )
+    ```
+
+!!! tip "Example for Field Action"
+    Perform task based on value of a field: Once the user provides the value for `confirm` field, the agent will say "Thank you".
+    ```python
+    if self.confirm:
+        say("Thank you")
+    ```
 
 #### Field Attributes
 
 Each task worksheet contains a set of fields. Each field contains the following attributes:
+
 - **Predicate**: indicates when a field should be activated based on values of other fields
 - **Kind**: three types of fields can be used: 
     - input: field values that are editable by the user
@@ -69,7 +82,7 @@ Each task worksheet contains a set of fields. Each field contains the following 
 - **Confirmation**: asks for confirmation for the field value if set to TRUE.
 - **Actions**: similar to WS Action, is used to execute python code to fetch, modify or post information.
 
-### Knowledge Acces Worksheet
+### Knowledge Access Worksheet
 Genie Worksheet treats knowledge access as a first-class object.
 
 !!! tip "Example for knowledge access"
@@ -81,10 +94,12 @@ To handle hybrid knowledge bases, Genie adopts the SUQL query language, an SQL e
 unstructured data (Liu et al., 2024d). Genie can be used with other knowledge access systems as well.
 
 For each knowledge base to be included, the developer must create a worksheet with the following attributes:
+
 - **WS Name**: the name of the worksheet. Used by semantic parser.
 - **WS Kind**: Should be set to "KB". Defines that this is a Knowledge Base type worksheet.
 
 The attributes for fields should be filled in as following:
+
 - **Kind**: should always be set as `internal` since the user cannot make changes to theses fields. 
     Should also write `primary` if the field is a primary key as: `internal; primary`
 
@@ -122,12 +137,13 @@ with all the knowledge bases. SUQL uses PostgreSQL. You should first create a da
         },
         db_host="127.0.0.1", # database host (defaults)
         db_port="5432", # database port (defaults)
-        postprocessing_fn=None,  # optional postprocessing function
-        result_postprocessing_fn=None,  # optional result postprocessing function
+        postprocessing_fn=None,  # optional postprocessing function for SUQL query
+        result_postprocessing_fn=None,  # optional result postprocessing function should return a dictionary
     )
     ```
 
-    [TODO: what kind of post processing functions and result_postprocessing_fn can be used]
+    - Postprocessing function is used to modify the SUQL query before it is executed. For example, using `suql.agent.postprocess_suql` to hardcode the limit of the query to 3 and converting the location to longitude and latitude.
+    - Result postprocessing function is used to clean up the result of the knowledge base call and return a dictionary. For example, if the knowledge base returns a list of restaurants, with 100s of columns, a function can be used to filter the required columns and return a dictionary.
 
 3. Define your Knowledge Parser. Genie supports two types of semnatic parser for knowledge bases. React Multi-Agent 
 Parser and a Simple LLM Parser.
@@ -139,7 +155,8 @@ Parser and a Simple LLM Parser.
     | Needs Examples | No              | Yes              |
 
 
-    ** Defining a React Multi Agent Parser **
+    **Defining a React Multi Agent Parser**
+
     ```python
     from worksheets.knowledge import SUQLReActParser
 
@@ -152,7 +169,8 @@ Parser and a Simple LLM Parser.
     )
     ```
 
-    ** Defining a Simple LLM Parser **
+    **Defining a Simple LLM Parser**
+
 
     ```python
     from worksheets.knowledge import SUQLParser
@@ -161,7 +179,6 @@ Parser and a Simple LLM Parser.
         llm_model_name="azure/gpt-4o",
         prompt_selector=None,  # optional function that helps in selecting the right prompt
         knowledge=suql_knowledge,
-        prompt_directory=""  # enter the prompt directory with suql_parser.prompt file
     )
     ```
 
@@ -181,6 +198,13 @@ Parser and a Simple LLM Parser.
         knowledge_parser=suql_parser,  # previously defined knowledge parser
     ).load_from_gsheet(gsheet_id="ADD YOUR SPREADSHEET ID HERE",)
     ```
+
+    The Genie Agent uses two prompts:
+
+    - Semantic Parsing Prompt: This is used to generate worksheet representation of the user's query. The prompt directory should contain the `semantic_parser.prompt` file.
+    - Response Generator Prompt: This is used to generate the response of the agent based on the worksheet representation and generated agent acts. The prompt directory should contain the `response_generator.prompt` file.
+
+    Checkout how to create prompts in the [prompt section](./prompt.md).
 
 
 5. Finally use the `converation_loop` funcion to run the agent

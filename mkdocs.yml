@@ -7,16 +7,22 @@ nav:
     - Getting Started:
       - Installation: installation.md
       - Creating an Agent: getting_started.md
-      - Tutorials: tutorials.md
-      - Best Practices: best_practices.md
+      - Creating Prompts: prompt.md
     - Core Concepts:
       - Dialogue State: dialogue_state.md
-      - Agent Policies: agent_policies.md
-      - Task Completion: task_completion.md
+      - Agent Policy: agent_policy.md
   - Examples:
+    - List of Examples: examples.md
     - Restaurant Reservation: restaurant_reservation.md
     - Ticket Submission: ticket_submission.md
     - Course Enrollment: course_enrollment.md
+  - API Reference:
+    - Core Modules:
+      - Environment: api/environment.md
+      - Agent: api/agent.md
+      - Knowledge: api/knowledge.md
+      - From Spreadsheet: api/from_spreadsheet.md
+    - Utility Modules: api/utils.md
     
 
 theme:
@@ -85,5 +91,33 @@ markdown_extensions:
   - pymdownx.details
   - attr_list
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
+
+mkdocstrings:
+  handlers:
+    python:
+      options:
+        docstring_style: google
+        show_if_no_docstring: true
+        show_signature: true
+        show_signature_annotations: true
+        show_source: true
+        show_bases: true
+        show_type_annotations: true
+        inherited_members: true
+        unwrap_annotated: true
+        merge_init_into_class: true
+        separate_signature: true
+        show_root_heading: true
+        show_root_full_path: true
+        show_object_full_path: false
+        show_category_heading: true
+        line_length: 80
+        members_order: source
+        docstring_section_style: table
+        show_submodules: true
+        filters: []  # Ensure no members are excluded
+        preload_modules: 
+          - src.worksheets
+
