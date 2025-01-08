@@ -1,3 +1,10 @@
+"""Core environment module for Genie worksheets and runtime management.
+
+This module provides the foundational classes and utilities for managing Genie worksheets,
+including type handling, context management, and runtime execution. It implements the core
+functionality for worksheet validation, action execution, and state management.
+"""
+
 from __future__ import annotations
 
 import ast
@@ -24,9 +31,22 @@ from worksheets.utils import (
 
 
 class GenieValue:
-    """A class to represent a value in Genie. This could be a string, int, float, etc."""
+    """A class to represent a value in Genie.
+
+    This class wraps primitive values (string, int, float, etc.) with additional
+    functionality like confirmation status tracking.
+
+    Attributes:
+        value: The wrapped primitive value.
+        confirmed (bool): Whether this value has been confirmed by the user.
+    """
 
     def __init__(self, value):
+        """Initialize a GenieValue.
+
+        Args:
+            value: The primitive value to wrap.
+        """
         self.value = value
         self.confirmed = False
 
@@ -41,6 +61,14 @@ class GenieValue:
         return self.value == other
 
     def confirm(self, confirmed: bool = True):
+        """Mark the value as confirmed.
+
+        Args:
+            confirmed (bool, optional): Whether to mark as confirmed. Defaults to True.
+
+        Returns:
+            GenieValue: The confirmed value instance.
+        """
         self.confirmed = confirmed
         return self
 
@@ -52,10 +80,25 @@ class GenieValue:
 
 
 class GenieResult(GenieValue):
-    """A class to represent the Result from executions.
-    These could be results of Answer or any Action that has been performed."""
+    """A class to represent results from executions.
+
+    This class extends GenieValue to store results from Answer executions or
+    other actions, maintaining references to parent objects.
+
+    Attributes:
+        value: The result value.
+        parent: The parent object that produced this result.
+        parent_var_name: The variable name of the parent in the context.
+    """
 
     def __init__(self, value, parent, parent_var_name):
+        """Initialize a GenieResult.
+
+        Args:
+            value: The result value.
+            parent: The parent object that produced this result.
+            parent_var_name: The variable name of the parent in the context.
+        """
         super().__init__(value)
         self.parent = parent
         self.parent_var_name = parent_var_name
@@ -65,7 +108,14 @@ class GenieResult(GenieValue):
 
 
 class GenieREPR(type):
-    """A metaclass to customize the string representation of classes that use this metaclass."""
+    """A metaclass to customize string representation of Genie classes.
+
+    This metaclass provides custom string representation for classes that use it,
+    maintaining ordered attributes and generating schema representations.
+
+    Attributes:
+        _ordered_attributes: List of ordered attribute names for the class.
+    """
 
     def __new__(cls, name, bases, dct):
         new_class = super().__new__(cls, name, bases, dct)
@@ -82,7 +132,7 @@ class GenieREPR(type):
 
     def get_semantic_parser_schema(cls):
         parameters = []
-        if cls.predicate == "" or cls.predicate is True:
+        if hasattr(cls, "predicate") and (cls.predicate == "" or cls.predicate is True):
             for field in get_genie_fields_from_ws(cls):
                 if not field.internal:
                     parameters.append(field.schema(value=False))
@@ -91,7 +141,7 @@ class GenieREPR(type):
 
 
 def validation_check(name, value, validation):
-    """Helper function to validate a value against a set of criteria.
+    """Validate a value against specified criteria using LLM.
 
     Args:
         name (str): The name of the field being validated.
@@ -99,7 +149,9 @@ def validation_check(name, value, validation):
         validation (str): The validation criteria.
 
     Returns:
-        tuple: A tuple containing a boolean indicating validity and an optional reason.
+        tuple: A tuple containing:
+            - bool: Whether the value is valid.
+            - str or None: The reason for invalidity, if any.
     """
     prompt_path = "validation_check.prompt"
     if isinstance(value, GenieValue):
@@ -126,6 +178,29 @@ def validation_check(name, value, validation):
 
 
 class GenieField:
+    """A class representing a field in a Genie worksheet.
+
+    This class handles field definitions, validation, and value management for
+    worksheet fields. It supports various field types, validation rules, and
+    action triggers.
+
+    Attributes:
+        slottype (str): The type of the field.
+        name (str): The field name.
+        question (str): Question to ask when field needs filling.
+        description (str): Field description for LLM understanding.
+        predicate (str): Condition for field relevance.
+        ask (bool): Whether to ask user for this field.
+        optional (bool): Whether field is optional.
+        actions: Actions to perform when field is filled.
+        requires_confirmation (bool): Whether field needs confirmation.
+        internal (bool): Whether field is system-managed.
+        primary_key (bool): Whether field is a primary key.
+        validation (str): Validation criteria.
+        parent: Parent worksheet.
+        bot: Associated bot instance.
+    """
+
     def __init__(
         self,
         # The type of the slot, e.g., str, int, etc.
@@ -238,7 +313,7 @@ class GenieField:
         """Generate a schema representation of the field.
 
         Args:
-            value (bool): Whether to include the value in the schema.
+            value (bool, optional): Whether to include the value in the schema. Defaults to True.
 
         Returns:
             str: The schema representation.
@@ -275,7 +350,7 @@ class GenieField:
         """Generate a schema representation of the field without type information.
 
         Args:
-            no_none (bool): Whether to exclude None values.
+            no_none (bool, optional): Whether to exclude None values. Defaults to False.
 
         Returns:
             str: The schema representation without type.
@@ -316,7 +391,16 @@ class GenieField:
         self.action_performed = False
         self._value = self.init_value(value)
 
-    def init_value(self, value):
+    def init_value(self, value: Any):
+        """Initialize a field value with proper validation and wrapping.
+
+        Args:
+            value (Any): The value to initialize.
+
+        Returns:
+            GenieValue: The initialized value, or None if validation fails.
+        """
+
         def previous_action_contains_confirm():
             """Only allow confirmation if the previous action was a confirmation action."""
             if self.bot.dlg_history is not None and len(self.bot.dlg_history):
@@ -371,6 +455,18 @@ class GenieField:
 
 
 class GenieWorksheet(metaclass=GenieREPR):
+    """Base class for Genie worksheets.
+
+    This class provides the foundation for defining worksheets with fields,
+    actions, and state management. It handles initialization, field management,
+    and action execution.
+
+    Attributes:
+        action_performed (bool): Whether worksheet actions have been executed.
+        result: The result of worksheet execution.
+        random_id (int): Unique identifier for the worksheet instance.
+    """
+
     def __init__(self, **kwargs):
         self.action_performed = False
         self.result = None
@@ -428,12 +524,12 @@ class GenieWorksheet(metaclass=GenieREPR):
 
         return acts
 
-    def is_complete(self, bot: GenieRuntime, context: GenieContext):
+    def is_complete(self, bot: GenieRuntime, context: GenieContext) -> bool:
         """Check if the worksheet is complete by evaluating all fields.
 
         Args:
             bot (GenieRuntime): The bot instance.
-            context (GenieContext): The local context.
+            context (GenieContext): The context for evaluation.
 
         Returns:
             bool: True if the worksheet is complete, False otherwise.
@@ -459,7 +555,7 @@ class GenieWorksheet(metaclass=GenieREPR):
 
         return f"{self.__class__.__name__}({', '.join([repr(param) for param in parameters])})"
 
-    def schema_without_type(self, context: GenieContext):
+    def schema_without_type(self, context: GenieContext) -> str:
         """Generate a schema representation of the worksheet without type information.
 
         Args:
@@ -552,7 +648,7 @@ class GenieWorksheet(metaclass=GenieREPR):
 
         Args:
             bot (GenieRuntime): The bot instance.
-            local_context (GenieContext): The local context for the execution.
+            local_context (GenieContext): The local context for execution.
         """
         parameters = []
         for f in get_genie_fields_from_ws(self):
@@ -615,7 +711,14 @@ class GenieWorksheet(metaclass=GenieREPR):
 
 
 class GenieType(GenieWorksheet):
-    """I am a GenieType"""
+    """Base class for Genie type definitions.
+
+    This class extends GenieWorksheet to provide type-specific functionality
+    and validation. It's used to define custom types in the Genie system.
+
+    Attributes:
+        _parent: Parent object reference.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -630,10 +733,29 @@ class GenieType(GenieWorksheet):
 
 
 class GenieDB(GenieWorksheet):
-    """I am a GenieDB"""
+    """Base class for Genie database models.
+
+    This class extends GenieWorksheet to provide database-specific functionality
+    and schema management.
+    """
 
 
 class Answer(GenieWorksheet):
+    """Class representing an answer in the Genie system.
+
+    This class handles query execution, result management, and parameter tracking
+    for answers to user queries.
+
+    Attributes:
+        query (GenieField): The query to execute.
+        actions: Associated actions.
+        result: Query execution result.
+        tables: Related database tables.
+        potential_outputs: Possible output types.
+        nl_query: Natural language query.
+        param_names: Required parameter names.
+    """
+
     def __init__(self, query, required_params, tables, nl_query):
         self.query = GenieField("str", "query", value=query)
         self.actions = Action(">suql_runner(self.query.value, self.required_columns)")
@@ -794,6 +916,17 @@ class Answer(GenieWorksheet):
 
 
 class MoreFieldInfo(GenieWorksheet):
+    """Class for managing additional field information requests.
+
+    This class handles requests for clarification or additional information
+    about specific fields.
+
+    Attributes:
+        api_name (GenieField): Name of the API.
+        parameter_name (GenieField): Name of the parameter.
+        actions: Associated actions.
+    """
+
     def __init__(self, api_name, parameter_name):
         self.api_name = GenieField("str", "api_name", value=api_name)
         self.parameter_name = GenieField("str", "parameter_name", value=parameter_name)
@@ -804,7 +937,14 @@ class MoreFieldInfo(GenieWorksheet):
 
 
 class Action:
-    """A class to store all the actions that can be performed after a worksheet is completed"""
+    """Class for managing worksheet actions.
+
+    This class handles action definition, execution, and result management
+    for worksheet operations.
+
+    Attributes:
+        action: The action to perform.
+    """
 
     def __init__(self, action):
         self.action = action
@@ -812,7 +952,19 @@ class Action:
     def __len__(self):
         return len(self.action)
 
-    def perform(self, obj, bot: GenieRuntime, local_context: GenieContext):
+    def perform(
+        self, obj: GenieWorksheet, bot: GenieRuntime, local_context: GenieContext
+    ) -> list:
+        """Perform the action with the given context.
+
+        Args:
+            obj (GenieWorksheet): The worksheet object.
+            bot (GenieRuntime): The bot instance.
+            local_context (GenieContext): The local context.
+
+        Returns:
+            list: List of actions performed.
+        """
         code = modify_action_code(self.action, obj, bot, local_context)
         code = sanitize_dev_code(code, bot.get_all_variables())
 
@@ -847,6 +999,25 @@ class Action:
 
 
 class GenieRuntime:
+    """Main runtime environment for Genie system.
+
+    This class manages the execution environment, including worksheet registration,
+    context management, and action execution.
+
+    Attributes:
+        name (str): Runtime instance name.
+        prompt_dir (str): Directory for prompts.
+        args: Additional arguments.
+        genie_worksheets (list): Registered worksheets.
+        genie_db_models (list): Registered database models.
+        starting_prompt (str): Initial system prompt.
+        description (str): Runtime description.
+        suql_runner: SQL query runner.
+        suql_parser: SQL query parser.
+        context (GenieContext): Global context.
+        dlg_history (list): Dialogue history.
+    """
+
     def __init__(
         self,
         # The name of the bot
@@ -927,8 +1098,12 @@ class GenieRuntime:
         self.dlg_history = None
         self.order_of_actions = []
 
-    def add_worksheet(self, ws):
-        """Add a worksheet to the bot's context."""
+    def add_worksheet(self, ws: type):
+        """Add a worksheet to the bot's context.
+
+        Args:
+            ws (type): The worksheet class to add.
+        """
         ws.bot = self
         for field in get_genie_fields_from_ws(ws):
             field.parent = ws
@@ -938,8 +1113,12 @@ class GenieRuntime:
         # self.context.update(self._grab_all_variables(ws))
         # self.local_context_init.update(self._grab_all_variables(ws))
 
-    def add_db_model(self, db_model):
-        """Add a database model to the bot's context."""
+    def add_db_model(self, db_model: type):
+        """Add a database model to the bot's context.
+
+        Args:
+            db_model (type): The database model class to add.
+        """
         db_model.bot = self
         for field in get_genie_fields_from_ws(db_model):
             field.parent = db_model
@@ -949,7 +1128,12 @@ class GenieRuntime:
         # self.context.update(self._grab_all_variables(db_model))
         # self.local_context_init.update(self._grab_all_variables(db_model))
 
-    def add_api(self, api):
+    def add_api(self, api: Any):
+        """Add an API function to the context.
+
+        Args:
+            api (Any): The API function or object to add.
+        """
         self.context.set(callable_name(api), api)
 
     def geniews(
@@ -988,8 +1172,16 @@ class GenieRuntime:
 
         return decorator
 
-    def execute(self, code, local_context=None, sp=False):
-        """Execute the given code in the context of the bot."""
+    def execute(
+        self, code: str, local_context: GenieContext | None = None, sp: bool = False
+    ):
+        """Execute the given code in the context of the bot.
+
+        Args:
+            code (str): The code to execute.
+            local_context (GenieContext | None, optional): Local context to use. Defaults to None.
+            sp (bool, optional): Whether this is a semantic parser execution. Defaults to False.
+        """
         if local_context:
             local_context.update(
                 {k: v for k, v in self.local_context_init.context.items()}
@@ -1008,8 +1200,16 @@ class GenieRuntime:
         # Add the parents for all the objects in the local context
         collect_all_parents(local_context)
 
-    def eval(self, code: str, local_context: GenieContext | None = None):
-        """Evaluate the given code in the context of the bot. Used for checking predicates"""
+    def eval(self, code: str, local_context: GenieContext | None = None) -> Any:
+        """Evaluate the given code in the context of the bot.
+
+        Args:
+            code (str): The code to evaluate.
+            local_context (GenieContext | None, optional): Local context to use. Defaults to None.
+
+        Returns:
+            Any: The result of the evaluation.
+        """
         if local_context:
             local_context.update(
                 {k: v for k, v in self.local_context_init.context.items()}
@@ -1057,6 +1257,12 @@ class GenieRuntime:
 
 
 class GenieInterpreter:
+    """Interpreter for executing Genie code.
+
+    This class provides code execution capabilities within the Genie environment,
+    handling variable resolution and context management.
+    """
+
     def execute(self, code, global_context, local_context, sp=False):
         # There are some issues here. since there are no numbers now,
         # when we do courses_to_take = CoursesToTake(courses_0_details=course)
@@ -1098,7 +1304,14 @@ class GenieInterpreter:
 
 
 class GenieContext:
-    """A class to store the context of the Genie runtime."""
+    """Context manager for Genie runtime.
+
+    This class manages variable context and agent actions during runtime.
+
+    Attributes:
+        context (dict): The context dictionary.
+        agent_acts: Current agent actions.
+    """
 
     def __init__(self, context: dict = None):
         if context is None:
@@ -1111,6 +1324,11 @@ class GenieContext:
         self.agent_acts = AgentActs({})
 
     def update(self, content: dict):
+        """Update the context with new content.
+
+        Args:
+            content (dict): Dictionary of content to update with.
+        """
         for key, value in content.items():
             if key != "answer" and key in self.context:
                 if not isinstance(self.context[key], list):
@@ -1128,10 +1346,24 @@ class GenieContext:
             else:
                 self.context[key] = value
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
+        """Get a value from the context.
+
+        Args:
+            key (str): The key to get.
+
+        Returns:
+            Any: The value associated with the key.
+        """
         return self.context[key]
 
-    def set(self, key, value):
+    def set(self, key: str, value: Any):
+        """Set a value in the context.
+
+        Args:
+            key (str): The key to set.
+            value (Any): The value to set.
+        """
         if key != "answer" and key in self.context:
             if not isinstance(self.context[key], list):
                 self.context[key] = [self.context[key]]
@@ -1139,20 +1371,45 @@ class GenieContext:
         else:
             self.context[key] = value
 
-    def delete(self, key):
+    def delete(self, key: str):
+        """Delete a key from the context.
+
+        Args:
+            key (str): The key to delete.
+        """
         del self.context[key]
 
 
 class TurnContext:
+    """Context manager for dialogue turns.
+
+    This class manages context for individual dialogue turns.
+
+    Attributes:
+        context (list[GenieContext]): List of contexts for each turn.
+    """
+
     def __init__(self):
         self.context: list[GenieContext] = []
 
     def add_turn_context(self, context: GenieContext):
+        """Add a new turn context.
+
+        Args:
+            context (GenieContext): The context to add for this turn.
+        """
         self.context.append(deepcopy(context))
 
 
 def get_genie_fields_from_ws(obj: GenieWorksheet) -> list[GenieField]:
-    """Get all GenieField instances from a GenieWorksheet."""
+    """Get all GenieField instances from a GenieWorksheet.
+
+    Args:
+        obj (GenieWorksheet): The worksheet to get fields from.
+
+    Returns:
+        list[GenieField]: List of GenieField instances.
+    """
     fields = []
     for attr in obj._ordered_attributes:
         if not attr.startswith("_"):
@@ -1164,7 +1421,18 @@ def get_genie_fields_from_ws(obj: GenieWorksheet) -> list[GenieField]:
 
 def execute_query(
     code: str, obj: GenieWorksheet, bot: GenieRuntime, local_context: GenieContext
-):
+) -> Any:
+    """Execute a query in the given context.
+
+    Args:
+        code (str): The code to execute.
+        obj (GenieWorksheet): The worksheet object.
+        bot (GenieRuntime): The bot instance.
+        local_context (GenieContext): The local context.
+
+    Returns:
+        Any: The result of the query execution.
+    """
     # refactoring the developer written code
     code = modify_action_code(code, obj, bot, local_context)
     code_ = f"__return = {code}"
@@ -1576,15 +1844,41 @@ def get_variable_name(obj: GenieWorksheet, context: GenieContext):
 ### INBUILT FUNCTIONS ###
 
 
-def propose(worksheet: GenieWorksheet, params: dict):
+def propose(worksheet: GenieWorksheet, params: dict) -> ProposeAgentAct:
+    """Create a proposal action.
+
+    Args:
+        worksheet (GenieWorksheet): The worksheet to propose values for.
+        params (dict): The parameters to propose.
+
+    Returns:
+        ProposeAgentAct: The created proposal action.
+    """
     return ProposeAgentAct(worksheet(**params), params)
 
 
-def say(message: str):
+def say(message: str) -> ReportAgentAct:
+    """Create a message report action.
+
+    Args:
+        message (str): The message to report.
+
+    Returns:
+        ReportAgentAct: The created report action.
+    """
     return ReportAgentAct(None, message)
 
 
-def generate_clarification(worksheet: GenieWorksheet, field: str):
+def generate_clarification(worksheet: GenieWorksheet, field: str) -> str:
+    """Generate clarification text for a field.
+
+    Args:
+        worksheet (GenieWorksheet): The worksheet containing the field.
+        field (str): The name of the field.
+
+    Returns:
+        str: The generated clarification text.
+    """
     for f in get_genie_fields_from_ws(worksheet):
         if f.name == field:
             if inspect.isclass(f.slottype) and issubclass(f.slottype, Enum):
@@ -1599,7 +1893,17 @@ def generate_clarification(worksheet: GenieWorksheet, field: str):
 
 def answer_clarification_question(
     worksheet: GenieField, field: GenieField, context: GenieContext
-):
+) -> ReportAgentAct:
+    """Create a clarification answer action.
+
+    Args:
+        worksheet (GenieField): The worksheet field.
+        field (GenieField): The field to clarify.
+        context (GenieContext): The context.
+
+    Returns:
+        ReportAgentAct: The created clarification report action.
+    """
     ws = context.context[worksheet.value]
     return ReportAgentAct(
         f"AskClarification({worksheet.value}, {field.value})",
@@ -1607,7 +1911,15 @@ def answer_clarification_question(
     )
 
 
-def confirm(value: Any):
+def confirm(value: Any) -> GenieValue:
+    """Create a confirmed value.
+
+    Args:
+        value (Any): The value to confirm.
+
+    Returns:
+        GenieValue: The confirmed value instance.
+    """
     if isinstance(value, GenieValue):
         return value.confirm()
     return GenieValue(value).confirm()
@@ -1617,10 +1929,25 @@ def confirm(value: Any):
 
 
 class AgentAct:
-    pass
+    """Base class for agent actions.
+
+    This class serves as the foundation for different types of agent actions
+    in the system.
+    """
 
 
 class ReportAgentAct(AgentAct):
+    """Action for reporting query results or messages.
+
+    This class handles reporting of query results and system messages.
+
+    Attributes:
+        query (GenieField): The query being reported.
+        message: The message or result to report.
+        query_var_name: Variable name for the query.
+        message_var_name: Variable name for the message.
+    """
+
     def __init__(
         self,
         query: GenieField,
@@ -1653,6 +1980,16 @@ class ReportAgentAct(AgentAct):
 
 
 class AskAgentAct(AgentAct):
+    """Action for requesting information from users.
+
+    This class handles user information requests.
+
+    Attributes:
+        ws (GenieWorksheet): The worksheet context.
+        field (GenieField): The field to ask about.
+        ws_name: Worksheet name override.
+    """
+
     def __init__(self, ws: GenieWorksheet, field: GenieField, ws_name=None):
         self.ws = ws
         self.field = field
@@ -1679,6 +2016,16 @@ class AskAgentAct(AgentAct):
 
 
 class ProposeAgentAct(AgentAct):
+    """Action for proposing worksheet values.
+
+    This class handles proposals for worksheet field values.
+
+    Attributes:
+        ws (GenieWorksheet): The worksheet context.
+        params (dict): Proposed parameters.
+        ws_name: Worksheet name override.
+    """
+
     def __init__(self, ws: GenieWorksheet, params: dict, ws_name=None):
         self.ws = ws
         self.params = params
@@ -1691,6 +2038,18 @@ class ProposeAgentAct(AgentAct):
 
 
 class AskForConfirmationAgentAct(AgentAct):
+    """Action for requesting user confirmation.
+
+    This class handles confirmation requests for field values.
+
+    Attributes:
+        ws (GenieWorksheet): The worksheet context.
+        field (GenieField): The field to confirm.
+        ws_name: Worksheet name override.
+        field_name: Field name override.
+        value: Value to confirm.
+    """
+
     def __init__(
         self, ws: "GenieWorksheet", field: "GenieField", ws_name=None, field_name=None
     ):
@@ -1715,6 +2074,16 @@ class AskForConfirmationAgentAct(AgentAct):
 
 
 class AgentActs:
+    """Container for managing multiple agent actions.
+
+    This class manages collections of agent actions, handling action ordering
+    and compatibility.
+
+    Attributes:
+        args: Arguments for action management.
+        actions (list): List of agent actions.
+    """
+
     def __init__(self, args):
         self.args = args
         self.actions = []
