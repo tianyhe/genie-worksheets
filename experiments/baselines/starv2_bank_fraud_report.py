@@ -11,13 +11,13 @@ from tqdm import tqdm
 
 from worksheets.agents.bankbot import spreadsheet
 from worksheets.annotation_utils import get_agent_action_schemas, get_context_schema
+from worksheets.components import CurrentDialogueTurn, generate_next_turn
 from worksheets.environment import (
     GenieContext,
     GenieWorksheet,
     get_genie_fields_from_ws,
 )
 from worksheets.from_spreadsheet import gsheet_to_genie
-from worksheets.modules import CurrentDialogueTurn, generate_next_turn
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -220,7 +220,6 @@ def run_one_file(file, output_path):
 
 
 def main(input_path, output_path):
-
     files = glob(os.path.join(input_path, "*.json"))
 
     count = 0

@@ -2,15 +2,10 @@ import datetime
 from enum import Enum
 from typing import List
 
-from worksheets.environment import (
-    Action,
-    GenieDB,
-    GenieField,
-    GenieType,
-    GenieWorksheet,
-    get_genie_fields_from_ws,
-)
-from worksheets.gsheet_utils import fill_all_empty, retrieve_gsheet
+from worksheets.core import GenieField
+from worksheets.core.worksheet import Action, GenieDB, GenieType, GenieWorksheet
+from worksheets.utils.field import get_genie_fields_from_ws
+from worksheets.utils.gsheet import fill_all_empty, retrieve_gsheet
 
 # Range of the gsheet
 gsheet_range_default = "A1:AD1007"

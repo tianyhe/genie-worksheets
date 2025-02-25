@@ -12,13 +12,13 @@ from tqdm import tqdm
 from worksheets.agents.triviabot import spreadsheet
 from worksheets.agents.triviabot.api import ask_question, check_user_answer
 from worksheets.annotation_utils import get_agent_action_schemas, get_context_schema
+from worksheets.components import CurrentDialogueTurn, generate_next_turn
 from worksheets.environment import (
     GenieContext,
     GenieWorksheet,
     get_genie_fields_from_ws,
 )
 from worksheets.from_spreadsheet import gsheet_to_genie
-from worksheets.modules import CurrentDialogueTurn, generate_next_turn
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
