@@ -6,6 +6,7 @@ of worksheets in the Genie system.
 
 from __future__ import annotations
 
+from fileinput import filename
 from typing import Any, Optional, Type, TypeVar
 
 from loguru import logger
@@ -259,6 +260,18 @@ class GenieWorksheet(metaclass=GenieREPR):
                 if result_str:
                     parameters.append(f"{field.name} = {result_str}")
             elif isinstance(field.value, GenieWorksheet):
+                var_name = get_variable_name(field.value, context)
+
+                if isinstance(var_name, str):
+                    if field.confirmed:
+                        parameters.append(f"{field.name} = confirmed({repr(var_name)})")
+                    else:
+                        parameters.append(f"{field.name} = {var_name}")
+                else:
+                    val = field.schema_without_type(no_none=True)
+                    if val:
+                        parameters.append(val)
+            else:
                 val = field.schema_without_type(no_none=True)
                 if val:
                     parameters.append(val)
@@ -463,14 +476,16 @@ class Answer(GenieWorksheet):
         """
         if self.action_performed:
             return
+
         results = execute_query(self.actions.action, self, bot, local_context)
+
         self.action_performed = True
         if results is None:
             results = []
 
         # Get more information about the fields
-        ws, field_name, more_field_info_result = self.more_field_info_query(bot)
-        logger.info(f"More Field Info: {more_field_info_result}")
+        # ws, field_name, more_field_info_result = self.more_field_info_query(bot)
+        # logger.info(f"More Field Info: {more_field_info_result}")
         logger.info(f"Results: {results}")
 
         # Earlier we had a mechanism to check if the user is asking to execute a query or asking for more information
@@ -504,7 +519,7 @@ class Answer(GenieWorksheet):
                 self.result = GenieResult(more_field_info_result, self, var_name)
                 self.bot.context.agent_acts.add(
                     ReportAgentAct(
-                        f"AskClarificationQuestion({ws.__class__.__name__}, {field_name.name})",
+                        f"AskClarificationQuestion({ws.__class__.__name__}, {filename.name})",
                         self.result,
                         message_var_name=var_name + ".result",
                     )

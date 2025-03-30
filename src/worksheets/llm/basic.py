@@ -93,6 +93,7 @@ async def llm_generate(
 ) -> str:
     if prompt_dir is None:
         prompt_dir = os.path.join(current_dir, "..", "prompts")
+    llm_params.pop("config_name", None)
     if "azure/" in model_name:
         llm = AzureChatOpenAI(
             azure_deployment=model_name.replace("azure/", ""),

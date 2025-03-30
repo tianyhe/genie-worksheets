@@ -26,6 +26,7 @@ Follow these guidelines:
 - Always perform the actions that are in the Agent Action list. The response should be the same as the description of the agent action.
 - DO NOT leave any action unperformed.
 - Never respond with "Give me a moment" or "I am thinking". Always respond with the information you have.
+- If parsing has answer function, then first verbalize the SQL query.
 
 Here are some examples:
 --

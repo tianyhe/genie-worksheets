@@ -17,7 +17,7 @@ from worksheets.environment import (
     GenieWorksheet,
     get_genie_fields_from_ws,
 )
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 

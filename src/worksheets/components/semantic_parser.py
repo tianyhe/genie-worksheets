@@ -172,7 +172,9 @@ class KnowledgeBaseParser:
 
         for answer_query in answer_queries:
             logger.info(f"Answer query: {answer_query}")
-            suql_query = await self._parse_to_suql(dlg_history, answer_query)
+            suql_query, db_result, db_result_exec = await self._parse_to_suql(
+                dlg_history, answer_query
+            )
 
             # if not suql_query:
             #     continue
@@ -187,6 +189,8 @@ class KnowledgeBaseParser:
                 tables,
                 unfilled_params,
                 pattern_type,
+                db_result,
+                db_result_exec,
             )
 
         return suql_queries, updated_target
@@ -195,7 +199,7 @@ class KnowledgeBaseParser:
         self,
         dlg_history: List[CurrentDialogueTurn],
         answer_query: str,
-    ) -> Optional[str]:
+    ) -> Tuple[Optional[str], Optional[str], bool]:
         """Parse an answer query to SUQL format.
 
         Args:
@@ -203,9 +207,10 @@ class KnowledgeBaseParser:
             answer_query (str): The answer query to parse.
 
         Returns:
-            Optional[str]: The parsed SUQL query or None if parsing fails.
+            Tuple[Optional[str], Optional[str], bool]: The parsed SUQL query, database result, and database result
+            execution is True if the query is executed.
         """
-        suql_query = await self.parser.parse(
+        suql_query, db_result, db_result_exec = await self.parser.parse(
             answer_query[1:-1], dlg_history, self.runtime
         )
 
@@ -213,7 +218,7 @@ class KnowledgeBaseParser:
             logger.error(f"SUQL parsing failed for {answer_query}")
             return ""
 
-        return suql_query.replace("\*", "*")
+        return suql_query.replace("\*", "*"), db_result, db_result_exec
 
     def _process_suql_query(self, suql_query: str) -> Tuple[List[str], Dict[str, Any]]:
         """Process a SUQL query to extract tables and unfilled parameters.
@@ -268,7 +273,7 @@ class KnowledgeBaseParser:
         """
         required_params = []
         table_class = None
-        for db in self.bot.genie_db_models:
+        for db in self.runtime.genie_db_models:
             if db.__name__ == table:
                 table_class = db
                 for field in get_genie_fields_from_ws(db):
@@ -284,6 +289,8 @@ class KnowledgeBaseParser:
         tables: List[str],
         unfilled_params: Dict[str, Any],
         pattern_type: str,
+        db_result: Optional[str],
+        db_result_exec: bool,
     ) -> str:
         """Update the user target with processed query information.
 
@@ -299,6 +306,10 @@ class KnowledgeBaseParser:
             str: The updated user target.
         """
         # TODO: Something is fucked up here.
+        # we should be able to pass the db_result and db_result_exec to the answer worksheet
+        # and use it to update the result
+        # I don't want to execute it directly right now, that doesn't seem a good idea -- there can be random formatting
+        # issues and other complications.
         if pattern_type == "func":
             answer_str = f"Answer({repr(suql_query)}, {unfilled_params}, {tables}, {repr(answer_query[1:-1])})"
             return user_target.replace(f"answer({answer_query})", answer_str)

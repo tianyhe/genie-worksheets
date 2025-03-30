@@ -70,7 +70,7 @@ def print_complete_history(dialogue_history):
         print_chatbot(turn.system_response)
 
 
-async def conversation_loop(agent, output_state_path, quit_commands=None):
+async def conversation_loop(agent, output_state_path, quit_commands=None, debug=False):
     """Run the conversation loop with the chatbot. Dumps the dialogue history to a JSON file upon exit.
 
     Args:
@@ -99,6 +99,10 @@ async def conversation_loop(agent, output_state_path, quit_commands=None):
         import traceback
 
         traceback.print_exc()
+        if debug:
+            import pdb
+
+            pdb.post_mortem()
     finally:
         with open(output_state_path, "w") as f:
             json.dump(convert_to_json(agent.dlg_history), f, indent=4)

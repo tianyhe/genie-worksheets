@@ -1,16 +1,13 @@
 import chainlit as cl
 
 from worksheets.agent.agent import Agent
-from worksheets.components.agent_policy import run_agent_policy
-from worksheets.components.response_generator import generate_response
-from worksheets.components.semantic_parser import perform_semantic_parsing
 from worksheets.core import GenieContext
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.utils.annotation import get_agent_action_schemas, get_context_schema
 
 
 class ChainlitAgent(Agent):
-    async def generate_next_turn_cl(user_utterance: str, bot):
+    async def generate_next_turn_cl(self, user_utterance: str):
         """Generate the next turn in the dialogue based on the user's utterance for chainlit frontend.
 
         Args:
@@ -22,6 +19,13 @@ class ChainlitAgent(Agent):
         current_dlg_turn = CurrentDialogueTurn()
         current_dlg_turn.user_utterance = user_utterance
 
+        # initialize contexts
+        current_dlg_turn.context = GenieContext()
+        current_dlg_turn.global_context = GenieContext()
+
+        # reset the agent acts
+        self.runtime.context.reset_agent_acts()
+
         # process the dialogue turn to GenieWorksheets
         async with cl.Step(
             name="Semantic Parsing",
@@ -31,29 +35,34 @@ class ChainlitAgent(Agent):
         ) as step:
             current_dlg_turn.context = GenieContext()
             current_dlg_turn.global_context = GenieContext()
-            await perform_semantic_parsing(current_dlg_turn, bot.dlg_history, bot)
+            await self.genie_parser.parse(current_dlg_turn, self.dlg_history)
             step.output = current_dlg_turn.user_target_sp
 
         # run the agent policy
         async with cl.Step(
-            name="Using Agent Policy",
+            name="Agent Policy",
             type="agent_policy",
             language="python",
             show_input=True,
         ) as step:
-            await cl.make_async(run_agent_policy)(current_dlg_turn, bot)
-            step.input = current_dlg_turn.user_target
-            step.output = get_agent_action_schemas(
-                current_dlg_turn.system_action, bot.context
+            await cl.make_async(self.genie_agent_policy_manager.run_policy)(
+                current_dlg_turn
             )
+            step.input = current_dlg_turn.user_target
+            step.output = get_context_schema(self.runtime.context)
 
         # generate a response based on the agent policy
         async with cl.Step(
             name="Generating Response",
             type="response_generator",
-            language="python",
+            language="json",
             show_input=True,
         ) as step:
-            await generate_response(current_dlg_turn, bot.dlg_history, bot)
-            step.output = get_context_schema(bot.context)
-            bot.dlg_history.append(current_dlg_turn)
+            await self.genie_response_generator.generate_response(
+                current_dlg_turn, self.dlg_history
+            )
+            # step.output = get_context_schema(self.runtime.context)
+            step.output = get_agent_action_schemas(
+                current_dlg_turn.system_action, self.runtime.context
+            )
+            self.dlg_history.append(current_dlg_turn)

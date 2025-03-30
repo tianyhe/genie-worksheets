@@ -306,12 +306,12 @@ class ActionPolicyExecutor:
                 )
                 if field.value is not None:
                     if field.requires_confirmation and field.confirmed:
-                        logger.debug(f"Handling confirmed field: {field.name}")
+                        logger.debug(f"Handling field that requires confirmation and is confirmed: {field.name}")
                         ActionPolicyExecutor._handle_confirmed_field(
                             field, obj, bot, local_context, agent_acts
                         )
                     elif not field.requires_confirmation:
-                        logger.debug(f"Handling unconfirmed field: {field.name}")
+                        logger.debug(f"Handling field that does not require confirmation: {field.name}")
                         ActionPolicyExecutor._handle_unconfirmed_field(
                             field, obj, bot, local_context, agent_acts
                         )

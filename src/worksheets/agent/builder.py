@@ -15,6 +15,7 @@ class AgentBuilder:
         name: str,
         description: str,
         starting_prompt: str,
+        agent_class: Type[Agent] = Agent,
     ):
         self.name = name
         self.description = description
@@ -26,6 +27,8 @@ class AgentBuilder:
         self._parser_class: Optional[Type[BaseParser]] = None
         self._kb_args: dict = {}
         self._parser_args: dict = {}
+
+        self.agent_class = agent_class
 
     def add_api(self, func: callable, description: str = None):
         """Register an API with name and optional description"""
@@ -103,7 +106,7 @@ class AgentBuilder:
                 **self._parser_args,
             )
 
-        agent = Agent(
+        agent = self.agent_class(
             botname=self.name,
             description=self.description,
             prompt_dir=config.prompt_dir,

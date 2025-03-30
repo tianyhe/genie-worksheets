@@ -14,6 +14,7 @@ class OpenAIModelConfig(BaseModel):
     api_key: str = Field(default=None)
     api_base: str = Field(default=None)
     api_version: str = Field(default=None)
+    config_name: str = Field(default="openai", frozen=True)
 
 
 class AzureModelConfig(BaseModel):
@@ -26,6 +27,7 @@ class AzureModelConfig(BaseModel):
     top_p: float = Field(default=1.0)
     frequency_penalty: float = Field(default=0.0)
     presence_penalty: float = Field(default=0.0)
+    config_name: str = Field(default="azure", frozen=True)
 
 
 class Config(BaseModel):

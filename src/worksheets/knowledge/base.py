@@ -58,6 +58,13 @@ class SUQLKnowledgeBase(BaseKnowledgeBase):
 
         query = query.strip().replace("\\'", "'")
 
+        if self.model_config.config_name == "azure":
+            api_base = self.model_config.azure_endpoint
+            api_version = self.model_config.api_version
+        else:
+            api_base = self.model_config.api_base
+            api_version = self.model_config.api_version
+
         results, column_names, _ = suql_execute(
             query,
             table_w_ids=self.tables_with_primary_keys,
@@ -69,8 +76,8 @@ class SUQLKnowledgeBase(BaseKnowledgeBase):
             select_userpswd=self.db_password,
             host=self.db_host,
             port=self.db_port,
-            api_base=self.model_config.api_base,
-            api_version=self.model_config.api_version,
+            api_base=api_base,
+            api_version=api_version,
         )
 
         # Convert the results to a list of dictionaries for genie worksheets

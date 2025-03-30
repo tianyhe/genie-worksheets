@@ -80,7 +80,8 @@ class BaseSUQLParser(BaseParser):
                 )
             )
 
-        return suql_dlg_history
+        db_result = None
+        return suql_dlg_history, db_result, False
 
 
 class SUQLParser(BaseSUQLParser):
@@ -143,7 +144,12 @@ class SUQLParser(BaseSUQLParser):
             temperature=0.0,
         )
 
-        return extract_code_block_from_output(parsed_output, lang="sql")
+        db_result = None
+        return (
+            extract_code_block_from_output(parsed_output, lang="sql"),
+            db_result,
+            False,
+        )
 
 
 class SUQLReActParser(BaseSUQLParser):
@@ -217,10 +223,12 @@ class SUQLReActParser(BaseSUQLParser):
         logger.info(f"SUQL output: {output}")
         try:
             final_output = output["final_sql"].sql
+            final_result = output["final_sql"].execution_result
         except Exception as e:
             logger.error(f"Error in parsing output: {e}")
             final_output = None
-        return final_output
+            final_result = None
+        return final_output, final_result, True
 
     async def anext_turn(
         self,

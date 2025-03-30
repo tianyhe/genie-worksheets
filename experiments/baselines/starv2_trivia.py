@@ -18,7 +18,7 @@ from worksheets.environment import (
     GenieWorksheet,
     get_genie_fields_from_ws,
 )
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -216,7 +216,6 @@ def run_one_file(file, output_path):
 
 
 def main(input_path, output_path):
-
     files = glob(os.path.join(input_path, "*.json"))
 
     count = 0

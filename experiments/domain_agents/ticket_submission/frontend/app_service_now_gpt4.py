@@ -10,7 +10,7 @@ from loguru import logger
 from experiments.baselines.gpt_servicenow import generate_next_turn_async
 from worksheets.agents.servicebot import spreadsheet
 from worksheets.components import CurrentDialogueTurn
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 logger.remove()

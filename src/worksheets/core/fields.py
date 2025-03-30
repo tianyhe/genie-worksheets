@@ -13,6 +13,7 @@ from typing import Any, Optional, Tuple, Type
 
 from bs4 import BeautifulSoup
 from loguru import logger
+from traitlets import Instance
 
 from worksheets.llm import llm_generate
 from worksheets.utils.logging_config import log_validation_result
@@ -199,11 +200,82 @@ class GenieField:
         logger.debug(f"  Primary key: {self.primary_key}")
         logger.debug(f"  Has validation: {self.validation is not None}")
 
-    def __deepcopy__(self, memo: dict) -> GenieField:
-        """Create a deep copy of the field.
+    def __getattr__(self, item: str) -> Any:
+        """Get an attribute of the field.
 
         Args:
-            memo: Dictionary of already copied objects
+            item: The attribute name
+
+        Returns:
+            The attribute value
+        """
+        from worksheets.core.worksheet import GenieWorksheet
+
+        # Delegate to value if it’s a Field instance
+        if isinstance(self.value, GenieWorksheet):
+            logger.debug(f"Getting attribute {item} from GenieWorksheet")
+            x = getattr(self.value, item)
+            return x
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{item}'"
+        )
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Set an attribute of the field.
+
+        Args:
+            key: The attribute name
+            value: The attribute value
+        """
+        try:
+            # hack to avoid recursion, check all the attributes.
+            if key not in [
+                "predicate",
+                "slottype",
+                "name",
+                "question",
+                "ask",
+                "optional",
+                "actions",
+                "requires_confirmation",
+                "internal",
+                "description",
+                "primary_key",
+                "validation",
+                "parent",
+                "bot",
+                "action_performed",
+                "_value",
+                "_confirmed",
+                "value",
+            ]:
+                if isinstance(getattr(self, key), GenieField):
+                    getattr(self, key).value = value
+            else:
+                super().__setattr__(key, value)
+        except Exception as e:
+            logger.error(
+                f"Error setting attribute {key} for field {self.name}: {str(e)}"
+            )
+            raise
+
+        # # Special case for initialization and for setting _value directly
+        # # using __dict__ to avoid setattr and getattr recursion
+        # if key == "_value" or "_value" not in self.__dict__:
+        #     # Use parent's __setattr__ to avoid recursion
+        #     super().__setattr__(key, value)
+        #     return
+
+        # if isinstance(getattr(self, key), GenieField):
+        #     getattr(self, key).value = value
+        # else:
+        #     super().__setattr__(key, value)
+
+    def __deepcopy__(self, memo: dict) -> GenieField:
+        """create a deep copy of the field.
+
+        Args:
+            memo: Dictionary Instancedy copied objects
 
         Returns:
             A new GenieField instance
@@ -234,6 +306,31 @@ class GenieField:
         except Exception as e:
             logger.error(f"Error creating deep copy of field {self.name}: {str(e)}")
             raise
+
+    def perform_action(self, runtime: "GenieRuntime", local_context: "GenieContext"):
+        """Perform the action associated with this field if it hasn't been performed yet.
+
+        Args:
+            bot (GenieRuntime): The bot instance.
+            local_context (GenieContext): The local context for the action.
+
+        Returns:
+            list: A list of actions performed.
+        """
+        if self.action_performed:
+            return []
+        logger.info(f"Peforming action for {self.name}: {self.actions.action}")
+        acts = []
+
+        # If there are no actions, return an empty list
+        if self.actions is None or len(self.actions) == 0:
+            return acts
+
+        # Perform the action
+        acts = self.actions.perform(self, runtime, local_context)
+        self.action_performed = True
+
+        return acts
 
     def __repr__(self) -> str:
         return self.schema(value=True)

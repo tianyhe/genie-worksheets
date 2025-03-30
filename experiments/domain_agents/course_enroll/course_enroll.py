@@ -106,6 +106,8 @@ How can I help you today?
         },
         postprocessing_fn=postprocess_suql,
         result_postprocessing_fn=None,
+        db_username="select_user",
+        db_password="select_user",
     )
     .with_parser(
         SUQLReActParser,
@@ -125,4 +127,6 @@ How can I help you today?
 
 if __name__ == "__main__":
     # Run the conversation loop in the terminal
-    asyncio.run(conversation_loop(agent, "course_assistant_bot.json"))
+    asyncio.run(
+        conversation_loop(agent, "course_assistant_bot_new.json", debug=True)
+    )

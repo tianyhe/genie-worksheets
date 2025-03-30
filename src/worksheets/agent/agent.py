@@ -6,9 +6,9 @@ from worksheets.components.response_generator import ResponseGenerator
 from worksheets.components.semantic_parser import GenieParser
 from worksheets.core import GenieContext, GenieRuntime
 from worksheets.core.dialogue import CurrentDialogueTurn
-from worksheets.from_spreadsheet import gsheet_to_genie
 from worksheets.knowledge.base import BaseKnowledgeBase
 from worksheets.knowledge.parser import BaseParser
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 
 class Agent:

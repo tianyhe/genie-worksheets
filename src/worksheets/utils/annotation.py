@@ -5,7 +5,6 @@ handling different types of answers, and preparing context for semantic parsing 
 dialogue interactions.
 """
 
-import json
 from typing import Any, List, Optional
 
 from loguru import logger
@@ -186,23 +185,43 @@ def get_agent_action_schemas(agent_acts, *args, **kwargs):
     Returns:
         list: List of string representations of agent actions.
     """
-    return agent_acts.actions
+    agent_acts_schema = []
+    if agent_acts:
+        for act in agent_acts:
+            agent_acts_schema.append(str(act))
+
+    return agent_acts_schema
+
+
+def pretty_print_actions(actions, indent=2):
+    """Pretty prints a list of actions.
+
+    Args:
+        actions: List of actions to print.
+        indent: Number of spaces to indent the output.
+
+    Returns:
+        str: A string representation of the actions.
+    """
+    # Use the provided indent parameter to control indentation
+    indent_str = " " * indent
+    return "[\n" + "\n".join([f"{indent_str}{action}" for action in actions]) + "\n]"
 
 
 def prepare_context_input(runtime, dlg_history, current_dlg_turn, starting_prompt: str):
-    """Prepares context input for dialogue processing.
+    """Prepared context input for dialogue processing.
+    currency
+        Args:
+            runtime: The runtime instance containing context and configuration.
+            dlg_history: List of previous dialogue turns.
+            current_dlg_turn: The current dialogue turn being processed.
 
-    Args:
-        runtime: The runtime instance containing context and configuration.
-        dlg_history: List of previous dialogue turns.
-        current_dlg_turn: The current dialogue turn being processed.
-
-    Returns:
-        tuple: A tuple containing (state_schema, agent_acts, agent_utterance).
+        Returns:
+            tuple: A tuple containing (state_schema, agent_acts, agent_utterance).
     """
     if len(dlg_history):
         state_schema = get_context_schema(runtime.context)
-        agent_acts = json.dumps(
+        agent_acts = pretty_print_actions(
             get_agent_action_schemas(dlg_history[-1].system_action, runtime.context),
             indent=2,
         )

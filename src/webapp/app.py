@@ -3,7 +3,7 @@ import traceback
 
 from flask import Flask, jsonify, render_template, request
 
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 

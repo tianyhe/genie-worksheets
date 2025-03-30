@@ -9,6 +9,6 @@ from worksheets.agents.course_assistant.custom_suql import (
     suql_prompt_selector,
     suql_runner,
 )
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import gsheet_to_genie
 
 gsheet_id_default = "1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE"
