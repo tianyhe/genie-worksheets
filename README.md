@@ -56,79 +56,121 @@ as a reference to create your own agents.
 ### Load the model configuration
 
 ```python
-from yaml import safe_load
+from worksheets import Config, AzureModelConfig
+import os
+
+# Define path to the prompts
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+prompt_dir = os.path.join(current_dir, "prompts")
 
 
-with open("model_config.yaml", "r") as f:
-    model_config = safe_load(f)
+config = Config(
+    semantic_parser=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    response_generator=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    knowledge_parser=AzureModelConfig(
+        model_name="gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    knowledge_base=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    prompt_dir=prompt_dir,
+)
 ```
 
-### Define your Knowledge Sources
+### Define your Knowledge Sources parameters
 
 ```python
-from worksheets.knowledge import SUQLKnowledgeBase
 
-suql_knowledge = SUQLKnowledgeBase(
-    llm_model_name="gpt-4o", # model name
-    tables_with_primary_keys={
+suql_knowledge_params = {
+    "tables_with_primary_keys": {
         "restaurants": "_id", # table name and primary key
     },
-    database_name="restaurants", # database name
-    embedding_server_address="http://127.0.0.1:8509",  # embedding server address for free text
-    source_file_mapping={
+    "database_name": "restaurants", # database name
+    "embedding_server_address": "http://127.0.0.1:8509",  # embedding server address for free text
+    "source_file_mapping": {
         "course_assistant_general_info.txt": os.path.join(
             current_dir, "course_assistant_general_info.txt"
         ) # mapping of free-text files with the path
     },
-    db_host="127.0.0.1", # database host
-    db_port="5432", # database port
-    postprocessing_fn=postprocess_suql,  # optional postprocessing function
-    result_postprocessing_fn=None,  # optional result postprocessing function
-)
+    "db_host": "127.0.0.1", # database host
+    "db_port": "5432", # database port
+    "postprocessing_fn": postprocess_suql,  # optional postprocessing function
+    "result_postprocessing_fn": None,  # optional result postprocessing function
+}
 ```
 
-### Define your Knowledge Parser
+### Define your Knowledge Parser parameters
 
 1. REACT Multi-agent parser
 
 ```python
-from worksheets.knowledge import SUQLReActParser
-
-suql_react_parser = SUQLReActParser(
-    llm_model_name="azure/gpt-4o",  # model name
-    example_path=os.path.join(current_dir, "examples.txt"),  # path to examples
-    instruction_path=os.path.join(current_dir, "instructions.txt"),  # path to domain-specific instructions
-    table_schema_path=os.path.join(current_dir, "table_schema.txt"),  # path to table schema
-    knowledge=suql_knowledge,  # previously defined knowledge source
-)
+suql_react_params = {
+    "example_path": os.path.join(current_dir, "examples.txt"),  # path to examples
+    "instruction_path": os.path.join(current_dir, "instructions.txt"),  # path to domain-specific instructions
+    "table_schema_path": os.path.join(current_dir, "table_schema.txt"),  # path to table schema
+}
 ```
 
 2. Simple LLM Parser
 
 ```python
-from worksheets.knowledge import SUQLParser
+from worksheets import SUQLParser
 
-suql_parser = SUQLParser(
-    llm_model_name="azure/gpt-4o",
-    prompt_selector=None,  # optional function that helps in selecting the right prompt
-    knowledge=suql_knowledge,
-),
+suql_parser_params = {
+    "prompt_selector": None,  # optional function that helps in selecting the right prompt
+}
 ```
 
 ### Define the Agent
 
 ```python
-from worksheets.agent import Agent
-course_assistant_bot = Agent(
-    botname="YelpBot",
-    description="You an assistant at Yelp and help users with all their queries related to booking a restaurant. You can search for restaurants, ask me anything about the restaurant and book a table.",
-    prompt_dir=prompt_dir,  # directory for prompts
-    starting_prompt="""Hello! I'm YelpBot. I'm here to help you find and book restaurants in four bay area cities **San Francisco, Palo Alto, Sunnyvale, and Cupertino**. What would you like to do?""",
-    args={},  # additional arguments
-    api=[book_restaurant_yelp],  # optional API functions
-    knowledge_base=suql_knowledge,  # previously defined knowledge source
-    knowledge_parser=suql_parser,  # previously defined knowledge parser
-).load_from_gsheet(gsheet_id="ADD YOUR SPREADSHEET ID HERE",)
+from worksheets import AgentBuilder, SUQLKnowledgeBase, SUQLReActParser
+
+agent = (
+    AgentBuilder(
+        name="Course Enrollment Assistant",
+        description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
+        starting_prompt="""Hello! I'm the Course Enrollment Assistant. I can help you with :
+- Selecting a course: just say find me programming courses
+- Enrolling into a course. 
+- Asking me any question related to courses and their requirement criteria.
+
+How can I help you today? 
+""",
+    )
+    .with_knowledge_base(
+        SUQLKnowledgeBase,
+        **suql_knowledge_params
+    )
+    .with_parser(
+        SUQLReActParser,
+        **suql_parser_params
+    )
+    .add_apis(
+        (course_detail_to_individual_params, "Get course details"),
+        (courses_to_take_oval, "Final API to enroll into a course"),
+        (is_course_full, "Check if a course is full"),
+    )
+    .with_gsheet_specification("ADD YOUR SPREADSHEET ID HERE")
+    .build(config)
+)
 ```
 
 
@@ -136,9 +178,9 @@ course_assistant_bot = Agent(
 
 ```python
 from asyncio import run
-from worksheets.interface_utils import conversation_loop
+from worksheets import conversation_loop
 
-asyncio.run(conversation_loop(course_assistant_bot, output_state_path="yelp_bot.json"))
+asyncio.run(conversation_loop(agent, output_state_path="ADD YOUR OUTPUT STATE PATH HERE"))
 ```
 
 
@@ -153,7 +195,7 @@ agent.
 You can copy basic annotated prompts from `experiments/sample_prompts/` 
 directory. Make change where we have `TODO`. You need two provide a few 
 guidelines in the prompt that will help the LLM to perform better and some 
-examples. Please `experiments/agents/course_enroll/prompts/` for inspiration!
+examples. Please `experiments/domain_agents/course_enroll/prompts/` for inspiration!
 
 
 ### Spreadsheet Specification
@@ -180,7 +222,7 @@ You can run the agent in a web interface by running:
 
 For restaurant agent:
 ```bash
-cd experiments/agents/yelpbot/frontend/
+cd experiments/domain_agents/yelpbot/frontend/
 chainlit run app_restaurant.py --port 8800
 ```
 
