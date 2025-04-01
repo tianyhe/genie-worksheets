@@ -29,12 +29,6 @@ USER_EXAMPLE_END = "<|endofexampleuser|>"
 AI_EXAMPLE_START = "<|startofexampleai|>"
 AI_EXAMPLE_END = "<|endofexampleai|>"
 
-config_params = {
-    "api_key": os.getenv("AZURE_OPENAI_WS_KEY"),
-    "azure_endpoint": os.getenv("AZURE_WS_ENDPOINT"),
-    "api_version": os.getenv("AZURE_WS_API_VERSION"),
-}
-
 
 def load_prompt(prompt_file: str) -> Tuple[str, str]:
     with open(prompt_file, "r") as f:
@@ -99,11 +93,11 @@ async def llm_generate(
 ) -> str:
     if prompt_dir is None:
         prompt_dir = os.path.join(current_dir, "..", "prompts")
+    llm_params.pop("config_name", None)
     if "azure/" in model_name:
         llm = AzureChatOpenAI(
             azure_deployment=model_name.replace("azure/", ""),
             streaming=stream,
-            **config_params,
             **llm_params,
         )
     elif "togetherai/" in model_name:

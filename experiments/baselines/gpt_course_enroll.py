@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 from enum import Enum
-from typing import List
 from uuid import uuid4
 
 import langchain
@@ -11,15 +10,17 @@ from langchain_core.callbacks import FileCallbackHandler, StdOutCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_core.utils.function_calling import convert_to_openai_function
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import ChatOpenAI
 from loguru import logger
-from openai import OpenAI
-from pydantic import BaseModel, Field
 from suql.agent import DialogueTurn
 
-from worksheets.from_spreadsheet import gsheet_to_genie
+from worksheets.agents.course_enroll.custom_suql import (
+    suql_prompt_selector,
+    suql_runner,
+)
+from worksheets.components import CurrentDialogueTurn
 from worksheets.llm import llm_generate
-from worksheets.utils import extract_code_block_from_output
+from worksheets.llm_utils import extract_code_block_from_output
 
 langchain.debug = True
 logfile = "gpt_yelpbot_basic.log"
@@ -27,11 +28,6 @@ logger.add(logfile, colorize=True, enqueue=True)
 handler_1 = FileCallbackHandler(logfile)
 handler_2 = StdOutCallbackHandler()
 
-from worksheets.agents.course_enroll.custom_suql import (
-    suql_prompt_selector,
-    suql_runner,
-)
-from worksheets.modules import CurrentDialogueTurn
 
 oval_config_params = {
     "api_key": os.getenv("AZURE_OPENAI_WS_KEY"),

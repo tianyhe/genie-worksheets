@@ -15,8 +15,10 @@ from langchain_openai import ChatOpenAI
 from loguru import logger
 from suql.agent import DialogueTurn
 
+from worksheets.agents.servicebot.custom_suql import suql_runner
+from worksheets.components import CurrentDialogueTurn
 from worksheets.llm import llm_generate
-from worksheets.utils import extract_code_block_from_output
+from worksheets.llm_utils import extract_code_block_from_output
 
 langchain.debug = True
 logfile = "gpt_yelpbot_basic.log"
@@ -24,8 +26,6 @@ logger.add(logfile, colorize=True, enqueue=True)
 handler_1 = FileCallbackHandler(logfile)
 handler_2 = StdOutCallbackHandler()
 
-from worksheets.agents.servicebot.custom_suql import suql_runner
-from worksheets.modules import CurrentDialogueTurn
 
 oval_config_params = {
     "api_key": os.getenv("AZURE_OPENAI_WS_KEY"),
