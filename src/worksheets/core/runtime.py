@@ -6,6 +6,7 @@ from functools import partial
 from typing import Any
 
 from loguru import logger
+from uvicorn import Config
 
 from worksheets.core.builtin_functions import (
     answer_clarification_question,
@@ -51,12 +52,14 @@ class GenieRuntime:
         api=None,
         # The SUQL runner (SUQLKnowledgeBase)
         suql_runner=None,
+        # The agent
+        agent=None,
     ):
         self.config = config
         self.genie_worksheets = []
         self.genie_db_models = []
         self.suql_runner = suql_runner
-
+        self.agent = agent
         self._interpreter = GenieInterpreter()
         self.context = GenieContext()
         self.local_context_init = GenieContext()

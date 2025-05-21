@@ -3,8 +3,10 @@ import inspect
 from pathlib import Path
 from typing import Callable, Dict, Optional, Type
 
+from jinja2 import Template
+
 from worksheets.agent.agent import Agent
-from worksheets.agent.config import Config
+from worksheets.agent.config import _AGENT_API_REGISTRY, Config
 from worksheets.knowledge.base import BaseKnowledgeBase
 from worksheets.knowledge.parser import BaseParser
 
@@ -15,7 +17,6 @@ class AgentBuilder:
         name: str,
         description: str,
         starting_prompt: str,
-        agent_class: Type[Agent] = Agent,
     ):
         self.name = name
         self.description = description
@@ -27,8 +28,7 @@ class AgentBuilder:
         self._parser_class: Optional[Type[BaseParser]] = None
         self._kb_args: dict = {}
         self._parser_args: dict = {}
-
-        self.agent_class = agent_class
+        self.auto_discover_apis = True  # New flag to control auto-discovery
 
     def add_api(self, func: callable, description: str = None):
         """Register an API with name and optional description"""
@@ -39,6 +39,11 @@ class AgentBuilder:
         """Register multiple APIs with names and descriptions"""
         for func, description in apis:
             self.add_api(func, description)
+        return self
+
+    def disable_auto_discovery(self):
+        """Disable automatic API discovery"""
+        self.auto_discover_apis = False
         return self
 
     def add_apis_from_module(self, module_path: str):
@@ -93,8 +98,25 @@ class AgentBuilder:
         self.gsheet_id = gsheet_id
         return self
 
-    def build(self, config: Config) -> Agent:
+    def _discover_registered_apis(self):
+        """Auto-discover all APIs registered with @agent_api"""
+        for api in _AGENT_API_REGISTRY:
+            if api._api_name not in self.apis:
+                self.apis[api._api_name] = {
+                    "func": api,
+                    "description": api._api_description,
+                }
+
+    def build(
+        self,
+        config: Config,
+        agent_class: Type[Agent] = Agent,
+    ) -> Agent:
         """Build and return the configured agent"""
+
+        # Auto-discover APIs if enabled
+        if self.auto_discover_apis:
+            self._discover_registered_apis()
 
         if self._kb_class:
             self.knowledge_base = self._kb_class(config.knowledge_base, **self._kb_args)
@@ -106,7 +128,7 @@ class AgentBuilder:
                 **self._parser_args,
             )
 
-        agent = self.agent_class(
+        agent = agent_class(
             botname=self.name,
             description=self.description,
             prompt_dir=config.prompt_dir,
@@ -121,3 +143,21 @@ class AgentBuilder:
             agent.load_runtime_from_gsheet(self.gsheet_id)
 
         return agent
+
+
+class TemplateLoader:
+    def __init__(self, template: str, format: str = "jinja2"):
+        self.template = template
+        self.format = format
+
+    @classmethod
+    def load(cls, template: str, format: str = "jinja2"):
+        with open(template, "r") as f:
+            return cls(f.read(), format)
+
+    def render(self, **kwargs):
+        if self.format == "jinja2":
+            template = Template(self.template)
+            return template.render(**kwargs)
+        else:
+            raise ValueError(f"Unsupported format: {self.format}")

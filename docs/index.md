@@ -1,15 +1,36 @@
 # Home
 
-## What is Genie Worksheets?
-
-> TLDR: Framework for creating reliable conversational agents
+<p align="center">
+    <h1 align="center">
+        <img src="assets/genie_worksheets_circle.png" width=100px>
+        <br>
+        <b>GenieWorksheets</b>
+        <br>
+        <a href="https://arxiv.org/abs/2407.05674">
+            <img src="https://img.shields.io/badge/cs.CL-2407.05674-b31b1b"
+            alt="arXiv">
+        </a>
+        <a href="https://ws.genie.stanford.edu/">
+            <img src="https://img.shields.io/badge/website-genie.stanford.edu-blue"
+            alt="Website">
+        </a>
+        <a href="https://ws.genie.stanford.edu/docs/">
+            <img src="https://img.shields.io/badge/docs-genie.stanford.edu-blue"
+            alt="Docs">
+        </a>
+    </h1>
+</p>
+<p align="center">
+    Framework for creating reliable conversational agents
+</p>
 
 Genie is a programmable framework for creating task-oriented conversational agents that are designed to handle complex user interactions and knowledge access.
 Unlike LLMs, Genie provides reliable grounded responses, with controllable agent policies through its expressive specification, Genie Worksheet.
 In contrast to dialog trees, it is resilient to diverse user queries, helpful with knowledge sources, and offers ease of programming policies through its declarative paradigm.
 
-![Genie Worksheets Logo](assets/genie_banner.jpg)
+[Research Preprint](https://arxiv.org/abs/2407.05674): To be presented at ACL 2025
 
+![Genie Worksheets Logo](assets/banner.jpg)
 
 !!! tip "When to use Genie Worksheets?"
     GenieWorksheets excels at handling complex dialogues where the agent actively provides assistance to the user.
@@ -71,3 +92,5 @@ If you use GenieWorksheets in your research, please cite our paper:
   year={2024}
 }
 ```
+
+GenieWorksheets logo is designed with the help of DALL-E.

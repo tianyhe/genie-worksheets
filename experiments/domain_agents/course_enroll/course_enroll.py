@@ -7,18 +7,20 @@ from suql.agent import postprocess_suql
 
 from worksheets import (
     AgentBuilder,
-    AzureModelConfig,
     Config,
     SUQLKnowledgeBase,
     SUQLReActParser,
     conversation_loop,
 )
+from worksheets.agent.builder import TemplateLoader
+from worksheets.agent.config import agent_api
 from worksheets.core.worksheet import get_genie_fields_from_ws
 
 # Define your APIs
 course_is_full = {}
 
 
+@agent_api("course_detail_to_individual_params", "Get course details")
 def course_detail_to_individual_params(course_detail):
     if course_detail.value is None:
         return {}
@@ -30,10 +32,12 @@ def course_detail_to_individual_params(course_detail):
     return course_detail
 
 
+@agent_api("courses_to_take_oval", "Enroll into a course")
 def courses_to_take_oval(**kwargs):
     return {"success": True, "transaction_id": uuid4()}
 
 
+@agent_api("is_course_full", "Check if a course is full")
 def is_course_full(course_id, **kwargs):
     # randomly return True or False
     if course_id not in course_is_full:
@@ -49,45 +53,17 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 prompt_dir = os.path.join(current_dir, "prompts")
 
 
-config = Config(
-    semantic_parser=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    response_generator=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    knowledge_parser=AzureModelConfig(
-        model_name="gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    knowledge_base=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    prompt_dir=prompt_dir,
+config = Config.load_from_yaml(os.path.join(current_dir, "config.yaml"))
+
+starting_prompt = TemplateLoader.load(
+    os.path.join(current_dir, "starting_prompt.md"), format="jinja2"
 )
 
-agent = (
+agent_builder = (
     AgentBuilder(
         name="Course Enrollment Assistant",
         description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
-        starting_prompt="""Hello! I'm the Course Enrollment Assistant. I can help you with :
-- Selecting a course: just say find me programming courses
-- Enrolling into a course. 
-- Asking me any question related to courses and their requirement criteria.
-
-How can I help you today? 
-""",
+        starting_prompt=starting_prompt.render(),
     )
     .with_knowledge_base(
         SUQLKnowledgeBase,
@@ -115,18 +91,11 @@ How can I help you today?
         instruction_path=os.path.join(current_dir, "instructions.txt"),
         table_schema_path=os.path.join(current_dir, "table_schema.txt"),
     )
-    .add_apis(
-        (course_detail_to_individual_params, "Get course details"),
-        (courses_to_take_oval, "Final API to enroll into a course"),
-        (is_course_full, "Check if a course is full"),
-    )
     .with_gsheet_specification("1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE")
-    .build(config)
 )
 
+agent = agent_builder.build(config)
 
 if __name__ == "__main__":
     # Run the conversation loop in the terminal
-    asyncio.run(
-        conversation_loop(agent, "course_assistant_bot_new.json", debug=True)
-    )
+    asyncio.run(conversation_loop(agent, "course_assistant_bot_new.json", debug=True))

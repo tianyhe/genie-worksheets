@@ -31,7 +31,7 @@ Worksheet. In contrast to dialog trees, it is resilient to diverse user queries,
 helpful with knowledge sources, and offers ease of programming policies through
  its declarative paradigm.
 
-[Research Preprint](https://arxiv.org/abs/2407.05674)
+[Research Preprint](https://arxiv.org/abs/2407.05674): To be presented at ACL 2025
 
 <img src="assets/banner.jpg">
 
@@ -41,7 +41,7 @@ To install Genie, we recommend using uv ([UV installation guide](https://github.
 
 
 ```bash
-git clone https://github.com/stanford-oval/worksheets.git
+git clone https://github.com/stanford-oval/genie-worksheets.git
 cd worksheets
 uv venv
 source venv/bin/activate
@@ -56,14 +56,22 @@ as a reference to create your own agents.
 ### Load the model configuration
 
 ```python
-from worksheets import Config, AzureModelConfig
+from worksheets import Config
 import os
 
 # Define path to the prompts
-
 current_dir = os.path.dirname(os.path.realpath(__file__))
 prompt_dir = os.path.join(current_dir, "prompts")
 
+# Load config from YAML file
+config = Config.load_from_yaml(os.path.join(current_dir, "config.yaml"))
+```
+
+You can also define the configuration programmatically:
+
+```python
+from worksheets import Config, AzureModelConfig
+import os
 
 config = Config(
     semantic_parser=AzureModelConfig(
@@ -94,48 +102,55 @@ config = Config(
 )
 ```
 
-### Define your Knowledge Sources parameters
+### Define your API functions
 
 ```python
+from worksheets.agent.config import agent_api
+from worksheets.core.worksheet import get_genie_fields_from_ws
+from uuid import uuid4
 
-suql_knowledge_params = {
-    "tables_with_primary_keys": {
-        "restaurants": "_id", # table name and primary key
-    },
-    "database_name": "restaurants", # database name
-    "embedding_server_address": "http://127.0.0.1:8509",  # embedding server address for free text
-    "source_file_mapping": {
-        "course_assistant_general_info.txt": os.path.join(
-            current_dir, "course_assistant_general_info.txt"
-        ) # mapping of free-text files with the path
-    },
-    "db_host": "127.0.0.1", # database host
-    "db_port": "5432", # database port
-    "postprocessing_fn": postprocess_suql,  # optional postprocessing function
-    "result_postprocessing_fn": None,  # optional result postprocessing function
-}
+@agent_api("course_detail_to_individual_params", "Get course details")
+def course_detail_to_individual_params(course_detail):
+    if course_detail.value is None:
+        return {}
+    course_detail = course_detail.value
+    course_detail = {}
+    for field in get_genie_fields_from_ws(course_detail):
+        course_detail[field.name] = field.value
+
+    return course_detail
+
+@agent_api("courses_to_take_oval", "Final API to enroll into a course")
+def courses_to_take_oval(**kwargs):
+    return {"success": True, "transaction_id": uuid4()}
+
+@agent_api("is_course_full", "Check if a course is full")
+def is_course_full(course_id, **kwargs):
+    # Implementation here
+    return False
 ```
 
-### Define your Knowledge Parser parameters
+### Define your starting prompt
 
-1. REACT Multi-agent parser
+You can load your starting prompt from a template file:
 
 ```python
-suql_react_params = {
-    "example_path": os.path.join(current_dir, "examples.txt"),  # path to examples
-    "instruction_path": os.path.join(current_dir, "instructions.txt"),  # path to domain-specific instructions
-    "table_schema_path": os.path.join(current_dir, "table_schema.txt"),  # path to table schema
-}
+from worksheets.agent.builder import TemplateLoader
+
+starting_prompt = TemplateLoader.load(
+    os.path.join(current_dir, "starting_prompt.md"), format="jinja2"
+)
 ```
 
-2. Simple LLM Parser
+Or define it inline:
 
 ```python
-from worksheets import SUQLParser
+starting_prompt = """Hello! I'm the Course Enrollment Assistant. I can help you with:
+- Selecting a course: just say find me programming courses
+- Enrolling into a course. 
+- Asking me any question related to courses and their requirement criteria.
 
-suql_parser_params = {
-    "prompt_selector": None,  # optional function that helps in selecting the right prompt
-}
+How can I help you today?"""
 ```
 
 ### Define the Agent
@@ -147,40 +162,48 @@ agent = (
     AgentBuilder(
         name="Course Enrollment Assistant",
         description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
-        starting_prompt="""Hello! I'm the Course Enrollment Assistant. I can help you with :
-- Selecting a course: just say find me programming courses
-- Enrolling into a course. 
-- Asking me any question related to courses and their requirement criteria.
-
-How can I help you today? 
-""",
+        starting_prompt=starting_prompt.render() if hasattr(starting_prompt, 'render') else starting_prompt,
     )
     .with_knowledge_base(
         SUQLKnowledgeBase,
-        **suql_knowledge_params
+        tables_with_primary_keys={
+            "courses": "course_id",
+            "ratings": "rating_id",
+            "offerings": "course_id",
+            "programs": "program_id",
+        },
+        database_name="course_assistant",
+        embedding_server_address="http://127.0.0.1:8509",
+        source_file_mapping={
+            "course_assistant_general_info.txt": os.path.join(
+                current_dir, "course_assistant_general_info.txt"
+            )
+        },
+        postprocessing_fn=postprocess_suql,
+        result_postprocessing_fn=None,
+        db_username="select_user",
+        db_password="select_user",
     )
     .with_parser(
         SUQLReActParser,
-        **suql_parser_params
+        example_path=os.path.join(current_dir, "examples.txt"),
+        instruction_path=os.path.join(current_dir, "instructions.txt"),
+        table_schema_path=os.path.join(current_dir, "table_schema.txt"),
     )
-    .add_apis(
-        (course_detail_to_individual_params, "Get course details"),
-        (courses_to_take_oval, "Final API to enroll into a course"),
-        (is_course_full, "Check if a course is full"),
-    )
-    .with_gsheet_specification("ADD YOUR SPREADSHEET ID HERE")
+    .with_gsheet_specification("YOUR_SPREADSHEET_ID_HERE")
     .build(config)
 )
 ```
 
-
 ### Run the conversation loop
 
 ```python
-from asyncio import run
+import asyncio
 from worksheets import conversation_loop
 
-asyncio.run(conversation_loop(agent, output_state_path="ADD YOUR OUTPUT STATE PATH HERE"))
+if __name__ == "__main__":
+    # Run the conversation loop in the terminal
+    asyncio.run(conversation_loop(agent, "output_state_path.json", debug=True))
 ```
 
 
@@ -212,6 +235,9 @@ Here is a sample spreadsheet for a restaurant agent: [Restaurant Agent](https://
 
 Please note that we only use the specification defined in the first sheet of the spreadsheet.
 
+## LLM Config
+You should modify `llm_config.example.yaml` and save it as `llm_config.yaml` from the directory where you run the agent.
+
 ### Running the Agent (Web Interface)
 
 Create a folder `frontend/`  under `experiments/agents/<agent_name>` and create a `app_*` file.
@@ -224,24 +250,6 @@ For restaurant agent:
 ```bash
 cd experiments/domain_agents/yelpbot/frontend/
 chainlit run app_restaurant.py --port 8800
-```
-
-## Set LLM Config
-To use Azure OpenAI you need to set the following environment variables:
-```
-export AZURE_OPENAI_WS_KEY="<AZURE OPENAI WS KEY>"
-export AZURE_WS_ENDPOINT="<AZURE WS ENDPOINT>"
-export AZURE_WS_API_VERSION="<AZURE WS API VERSION>"
-```
-
-To use OpenAI you need to set the following environment variables:
-```
-export OPENAI_API_KEY="<OPENAI API KEY>"
-```
-
-To use Together AI you need to set the following environment variables:
-```
-export TOGETHER_API_KEY="<TOGETHER AI API KEY>"
 ```
 
 ## Cite our work

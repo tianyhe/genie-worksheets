@@ -1,7 +1,11 @@
+import os
 from functools import wraps
 
 import yaml
 from pydantic import BaseModel, Field
+
+# Registry to store all agent APIs
+_AGENT_API_REGISTRY = []
 
 
 class OpenAIModelConfig(BaseModel):
@@ -42,7 +46,26 @@ class Config(BaseModel):
     @classmethod
     def load_from_yaml(cls, path: str):
         with open(path, "r") as f:
-            return cls(**yaml.safe_load(f))
+            config = yaml.safe_load(f)
+
+        for model_config in [
+            "semantic_parser",
+            "response_generator",
+            "knowledge_parser",
+            "knowledge_base",
+        ]:
+            api_key = os.getenv(config[model_config]["api_key"])
+            config[model_config]["api_key"] = api_key
+            if "azure/" in config[model_config]["model_name"]:
+                azure_endpoint = os.getenv(config[model_config]["azure_endpoint"])
+                config[model_config]["azure_endpoint"] = azure_endpoint
+                config[model_config] = AzureModelConfig(
+                    **config[model_config],
+                )
+            else:
+                config[model_config] = OpenAIModelConfig(**config[model_config])
+
+        return cls(**config)
 
 
 def agent_api(name: str = None, description: str = None):
@@ -61,6 +84,25 @@ def agent_api(name: str = None, description: str = None):
         wrapper._is_agent_api = True
         wrapper._api_name = name or func.__name__
         wrapper._api_description = description or func.__doc__
+
+        # Add to registry
+        _AGENT_API_REGISTRY.append(wrapper)
+
         return wrapper
 
     return decorator
+
+
+def get_all_agent_apis():
+    """Returns a list of all functions decorated with @agent_api"""
+    api_list = []
+    for api in _AGENT_API_REGISTRY:
+        api_list.append((api, api._api_description))
+    return api_list
+
+
+if __name__ == "__main__":
+    config = Config.load_from_yaml(
+        "/home/harshit/genie-worksheets/experiments/domain_agents/course_enroll/config.yaml"
+    )
+    print(config)

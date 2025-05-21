@@ -21,7 +21,7 @@ dependencies = [
     "grandalf>=0.8",
     "langchain-openai>=0.1.7",
     "langchain-together>=0.1.1",
-    "chainlit>=1.2.0",
+    "chainlit>=2.0.0",
 ]
 
 [build-system]

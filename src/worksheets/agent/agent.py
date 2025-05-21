@@ -86,6 +86,7 @@ class Agent:
             config=self.config,
             api=self.api,
             suql_runner=suql_runner,
+            agent=self,
         )
 
         # Add worksheets, databases, and types to the GenieRuntime instance

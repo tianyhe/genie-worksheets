@@ -13,7 +13,6 @@ from typing import Any, Optional, Tuple, Type
 
 from bs4 import BeautifulSoup
 from loguru import logger
-from traitlets import Instance
 
 from worksheets.llm import llm_generate
 from worksheets.utils.logging_config import log_validation_result
@@ -464,24 +463,24 @@ class GenieField:
                 return None
 
         valid = True
-        if self.validation:
-            logger.debug(f"Validating value against criteria: {self.validation}")
-            matches_criteria, reason = validation_check(
-                self.name, value, self.validation
-            )
-            if not matches_criteria:
-                if isinstance(value, GenieValue):
-                    value = value.value
-                logger.warning(f"Validation failed for field {self.name}: {reason}")
-                from worksheets.core.agent_acts import ReportAgentAct
+        # if self.validation:
+        #     logger.debug(f"Validating value against criteria: {self.validation}")
+        #     matches_criteria, reason = validation_check(
+        #         self.name, value, self.validation
+        #     )
+        #     if not matches_criteria:
+        #         if isinstance(value, GenieValue):
+        #             value = value.value
+        #         logger.warning(f"Validation failed for field {self.name}: {reason}")
+        #         from worksheets.core.agent_acts import ReportAgentAct
 
-                self.parent.bot.context.agent_acts.add(
-                    ReportAgentAct(
-                        query=f"{self.name}={value}",
-                        message=f"Invalid value for {self.name}: {value} - {reason}",
-                    )
-                )
-                valid = False
+        #         self.parent.bot.context.agent_acts.add(
+        #             ReportAgentAct(
+        #                 query=f"{self.name}={value}",
+        #                 message=f"Invalid value for {self.name}: {value} - {reason}",
+        #             )
+        #         )
+        #         valid = False
 
         if valid:
             if isinstance(value, GenieValue):
@@ -497,9 +496,9 @@ class GenieField:
         logger.debug(f"Checking previous confirmation for field {self.name}")
 
         try:
-            if self.bot.dlg_history is not None and len(self.bot.dlg_history):
-                if self.bot.dlg_history[-1].system_action is not None:
-                    for act in self.bot.dlg_history[-1].system_action.actions:
+            if self.bot.agent.dlg_history is not None and len(self.bot.agent.dlg_history):
+                if self.bot.agent.dlg_history[-1].system_action is not None:
+                    for act in self.bot.agent.dlg_history[-1].system_action.actions:
                         from worksheets.core.agent_acts import AskAgentAct
 
                         if isinstance(act, AskAgentAct):
@@ -527,7 +526,7 @@ validation criteria using LLM-based validation.
 """
 
 
-def validation_check(
+async def validation_check(
     name: str, value: Any, validation: str
 ) -> Tuple[bool, Optional[str]]:
     """Validate a value against specified criteria using LLM.
@@ -559,7 +558,7 @@ def validation_check(
 
     try:
         logger.debug(f"Generating LLM response with prompt: {prompt_path}")
-        response = llm_generate(
+        response = await llm_generate(
             prompt_path,
             {
                 "value": val,

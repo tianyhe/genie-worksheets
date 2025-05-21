@@ -1,0 +1,25 @@
+prompt_dir: "/home/harshit/genie-worksheets/experiments/domain_agents/course_enroll/prompts/"
+validate_response: false
+semantic_parser:
+    model_name: "azure/gpt-4o"
+    api_key: "AZURE_HAI_KEY"
+    api_version: "2024-08-01-preview"
+    azure_endpoint: "AZURE_HAI_ENDPOINT"
+
+response_generator:
+    model_name: "azure/gpt-4o"
+    api_key: "AZURE_HAI_KEY"
+    api_version: "2024-08-01-preview"
+    azure_endpoint: "AZURE_HAI_ENDPOINT"
+
+knowledge_parser:
+    model_name: "gpt-4o"
+    api_key: "AZURE_HAI_KEY"
+    api_version: "2024-08-01-preview"
+    azure_endpoint: "AZURE_HAI_ENDPOINT"
+
+knowledge_base:
+    model_name: "azure/gpt-4o"
+    api_key: "AZURE_HAI_KEY"
+    api_version: "2024-08-01-preview"
+    azure_endpoint: "AZURE_HAI_ENDPOINT"

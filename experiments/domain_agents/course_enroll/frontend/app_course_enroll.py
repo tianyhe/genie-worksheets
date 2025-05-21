@@ -3,26 +3,22 @@ import os
 import random
 import sys
 from typing import Any, Dict, List
+from uuid import uuid4
 
 import chainlit as cl
 from loguru import logger
-from suql.agent import postprocess_suql
 
-from worksheets import (
-    AgentBuilder,
-    AzureModelConfig,
-    Config,
-    SUQLKnowledgeBase,
-    SUQLReActParser,
-)
+from worksheets import Config
 from worksheets.agent.chainlit import ChainlitAgent
 from worksheets.core.dialogue import CurrentDialogueTurn
+from worksheets.core.worksheet import get_genie_fields_from_ws
 from worksheets.utils.annotation import get_agent_action_schemas, get_context_schema
 
 sys.path.append(
-    "/home/harshit/genie-worksheets/experiments/domain_agents/course_enroll/"
+    "/home/harshit/genie-worksheets/experiments/domain_agents/"
 )
 
+from course_enroll.course_enroll import agent_builder
 
 # Define your APIs
 course_is_full = {}
@@ -57,24 +53,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_DIR = os.path.join(CURRENT_DIR, "data", "user_conversation")
 LOGS_DIR = os.path.join(CURRENT_DIR, "..", "user_logs_courseenroll")
 LOGS_FILE = os.path.join(LOGS_DIR, "user_logs_230325.log")
-EXAMPLES_PATH = os.path.join(CURRENT_DIR, "..", "examples.txt")
-INSTRUCTIONS_PATH = os.path.join(CURRENT_DIR, "..", "instructions.txt")
-TABLE_SCHEMA_PATH = os.path.join(CURRENT_DIR, "..", "table_schema.txt")
-PROMPT_DIR = os.path.join(CURRENT_DIR, "..", "prompts")
-GSHEET_ID = "1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE"
-GENERAL_INFO_PATH = os.path.join(CURRENT_DIR, "course_assistant_general_info.txt")
-DB_CONFIG = {
-    "database_name": "course_assistant",
-    "embedding_server_address": "http://127.0.0.1:8509",
-    "db_username": "select_user",
-    "db_password": "select_user",
-}
-TABLE_PRIMARY_KEYS = {
-    "courses": "course_id",
-    "ratings": "rating_id",
-    "offerings": "course_id",
-    "programs": "program_id",
-}
+
 
 # Extend python path to include parent directories
 sys.path.append(os.path.join(CURRENT_DIR, "..", ".."))
@@ -83,35 +62,9 @@ sys.path.append(os.path.join(CURRENT_DIR, "..", ".."))
 logger.remove()
 logger.add(LOGS_FILE, rotation="1 day")
 
-# Azure OpenAI configuration
-config = Config(
-    semantic_parser=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    response_generator=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    knowledge_parser=AzureModelConfig(
-        model_name="gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    knowledge_base=AzureModelConfig(
-        model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
-    ),
-    prompt_dir=PROMPT_DIR,
-)
+# Load configurations from YAML
 
+config = Config.load_from_yaml(os.path.join(CURRENT_DIR, "..", "config.yaml"))
 
 def convert_to_json(dialogue: List[CurrentDialogueTurn]) -> List[Dict[str, Any]]:
     """
@@ -186,59 +139,37 @@ def save_conversation(
     return file_path
 
 
-def create_agent() -> ChainlitAgent:
+def create_agent(model: str = "GPT-4o") -> ChainlitAgent:
     """
     Create and configure the course enrollment agent.
 
     Returns:
         Configured ChainlitAgent
     """
-    return (
-        AgentBuilder(
-            name="Course Enrollment Assistant",
-            description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
-            starting_prompt="""Hello! I'm the Course Enrollment Assistant. I can help you with:
-- Selecting a course: just say find me programming courses
-- Enrolling into a course. 
-- Asking me any question related to courses and their requirement criteria.
+    return agent_builder.build(config, ChainlitAgent)
 
-How can I help you today? 
-    """,
-            agent_class=ChainlitAgent,
-        )
-        .with_knowledge_base(
-            SUQLKnowledgeBase,
-            tables_with_primary_keys=TABLE_PRIMARY_KEYS,
-            database_name=DB_CONFIG["database_name"],
-            embedding_server_address=DB_CONFIG["embedding_server_address"],
-            source_file_mapping={
-                "course_assistant_general_info.txt": GENERAL_INFO_PATH
-            },
-            postprocessing_fn=postprocess_suql,
-            result_postprocessing_fn=None,
-            db_username=DB_CONFIG["db_username"],
-            db_password=DB_CONFIG["db_password"],
-        )
-        .with_parser(
-            SUQLReActParser,
-            example_path=EXAMPLES_PATH,
-            instruction_path=INSTRUCTIONS_PATH,
-            table_schema_path=TABLE_SCHEMA_PATH,
-        )
-        .add_apis(
-            (course_detail_to_individual_params, "Get course details"),
-            (courses_to_take_oval, "Final API to enroll into a course"),
-            (is_course_full, "Check if a course is full"),
-        )
-        .with_gsheet_specification(GSHEET_ID)
-        .build(config)
-    )
+
+@cl.set_chat_profiles
+async def chat_profile():
+    return [
+        cl.ChatProfile(
+            name="GPT-4o",
+            markdown_description="Course Enrollment Assistant (GPT-4o)",
+            icon="https://www.wwknowledge.org/assets/logos/oval-logo.png",
+        ),
+        cl.ChatProfile(
+            name="GPT-4o-mini",
+            markdown_description="Course Enrollment Assistant (GPT-4o-mini)",
+            icon="https://www.wwknowledge.org/assets/logos/oval-logo.png",
+        ),
+    ]
 
 
 @cl.on_chat_start
 async def initialize():
     """Initialize the chat session when a user starts a conversation."""
-    agent = create_agent()
+    chat_profile = cl.user_session.get("chat_profile")
+    agent = create_agent(model=chat_profile)
     cl.user_session.set("bot", agent)
 
     user_id = cl.user_session.get("id")
@@ -261,7 +192,7 @@ async def initialize():
 async def get_user_message(message):
     """Handle user messages and generate responses."""
     agent = cl.user_session.get("bot")
-    await agent.generate_next_turn_cl(message.content)
+    await agent.generate_next_turn(message.content)
 
     cl.user_session.set("bot", agent)
     user_id = cl.user_session.get("id")
@@ -277,6 +208,7 @@ async def get_user_message(message):
     # Send response with conversation log attachment
     await cl.Message(
         response,
+        author="Course Enrollment Assistant",
         elements=[cl.File(name="conv_log.json", path=file_path)],
     ).send()
 

@@ -87,8 +87,8 @@ Genie Worksheet treats knowledge access as a first-class object.
 
 !!! tip "Example for knowledge access"
     Real-life queries often involve both structured and unstructured accesses.
-    For instance, queries “What’s the best-rated restaurant with a romantic atmosphere” require access to both the 
-    structured “ratings” column and the free text “reviews” column. 
+    For instance, queries "What's the best-rated restaurant with a romantic atmosphere" require access to both the 
+    structured "ratings" column and the free text "reviews" column. 
 
 To handle hybrid knowledge bases, Genie adopts the SUQL query language, an SQL extension that integrates search of
 unstructured data (Liu et al., 2024d). Genie can be used with other knowledge access systems as well.
@@ -108,113 +108,204 @@ The attributes for fields should be filled in as following:
 
 For creating the agent, we need to load configurations, and add prompts.
 
-1. First load the model configuration for different components of Genie Agent.
+### Load the model configuration
 
-    ```python
-    from yaml import safe_load
+```python
+from worksheets import Config
+import os
 
-    with open("model_config.yaml", "r") as f:
-        model_config = safe_load(f)
-    ```
+# Define path to the prompts
+current_dir = os.path.dirname(os.path.realpath(__file__))
+prompt_dir = os.path.join(current_dir, "prompts")
 
-2. Define your Knowledge Sources. Right now Genie only supports SUQL knowledge base but in theory, Genie should work
-with all the knowledge bases. SUQL uses PostgreSQL. You should first create a database in PostgreSQL.
+# Load config from YAML file
+config = Config.load_from_yaml(os.path.join(current_dir, "config.yaml"))
+```
 
-    ```python
-    from worksheets.knowledge import SUQLKnowledgeBase
+You can also define the configuration programmatically:
 
-    suql_knowledge = SUQLKnowledgeBase(
-        llm_model_name="gpt-4o", # model name, append `azure/` or `together/` for azure and together models.
+```python
+from worksheets import Config, AzureModelConfig
+import os
+
+config = Config(
+    semantic_parser=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    response_generator=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    knowledge_parser=AzureModelConfig(
+        model_name="gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    knowledge_base=AzureModelConfig(
+        model_name="azure/gpt-4o",
+        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
+        api_version=os.getenv("AZURE_WS_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
+    ),
+    prompt_dir=prompt_dir,
+)
+```
+
+### Define your API functions
+
+```python
+from worksheets.agent.config import agent_api
+from worksheets.core.worksheet import get_genie_fields_from_ws
+from uuid import uuid4
+
+@agent_api("course_detail_to_individual_params", "Get course details")
+def course_detail_to_individual_params(course_detail):
+    if course_detail.value is None:
+        return {}
+    course_detail = course_detail.value
+    course_detail = {}
+    for field in get_genie_fields_from_ws(course_detail):
+        course_detail[field.name] = field.value
+
+    return course_detail
+
+@agent_api("courses_to_take_oval", "Final API to enroll into a course")
+def courses_to_take_oval(**kwargs):
+    return {"success": True, "transaction_id": uuid4()}
+
+@agent_api("is_course_full", "Check if a course is full")
+def is_course_full(course_id, **kwargs):
+    # Implementation here
+    return False
+```
+
+### Define your starting prompt
+
+You can load your starting prompt from a template file:
+
+```python
+from worksheets.agent.builder import TemplateLoader
+
+starting_prompt = TemplateLoader.load(
+    os.path.join(current_dir, "starting_prompt.md"), format="jinja2"
+)
+```
+
+Or define it inline:
+
+```python
+starting_prompt = """Hello! I'm the Course Enrollment Assistant. I can help you with:
+- Selecting a course: just say find me programming courses
+- Enrolling into a course. 
+- Asking me any question related to courses and their requirement criteria.
+
+How can I help you today?"""
+```
+
+### Define the Agent
+
+Instead of directly creating an Agent instance, we recommend using AgentBuilder for a more fluent API:
+
+```python
+from worksheets import AgentBuilder, SUQLKnowledgeBase, SUQLReActParser
+
+agent = (
+    AgentBuilder(
+        name="Course Enrollment Assistant",
+        description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
+        starting_prompt=starting_prompt.render() if hasattr(starting_prompt, 'render') else starting_prompt,
+    )
+    .with_knowledge_base(
+        SUQLKnowledgeBase,
         tables_with_primary_keys={
-            "restaurants": "_id", # table name and primary key
+            "courses": "course_id",
+            "ratings": "rating_id",
+            "offerings": "course_id",
+            "programs": "program_id",
         },
-        database_name="restaurants", # database name
-        embedding_server_address="http://127.0.0.1:8509",  # embedding server address for free text type of KB Worksheet
+        database_name="course_assistant",
+        embedding_server_address="http://127.0.0.1:8509",
         source_file_mapping={
             "course_assistant_general_info.txt": os.path.join(
                 current_dir, "course_assistant_general_info.txt"
-            ) # mapping of free-text files with the path
+            )
         },
-        db_host="127.0.0.1", # database host (defaults)
-        db_port="5432", # database port (defaults)
-        postprocessing_fn=None,  # optional postprocessing function for SUQL query
-        result_postprocessing_fn=None,  # optional result postprocessing function should return a dictionary
+        postprocessing_fn=postprocess_suql,
+        result_postprocessing_fn=None,
+        db_username="select_user",
+        db_password="select_user",
     )
-    ```
-
-    - Postprocessing function is used to modify the SUQL query before it is executed. For example, using `suql.agent.postprocess_suql` to hardcode the limit of the query to 3 and converting the location to longitude and latitude.
-    - Result postprocessing function is used to clean up the result of the knowledge base call and return a dictionary. For example, if the knowledge base returns a list of restaurants, with 100s of columns, a function can be used to filter the required columns and return a dictionary.
-
-3. Define your Knowledge Parser. Genie supports two types of semnatic parser for knowledge bases. React Multi-Agent 
-Parser and a Simple LLM Parser.
-
-    | Features | React Agent | Simple LLM Parser |
-    |----------|-------------|-------------------|
-    | Speed          | Slower          | Faster           |
-    | Accuracy       | Better Accuracy | Worse            |
-    | Needs Examples | No              | Yes              |
-
-
-    **Defining a React Multi Agent Parser**
-
-    ```python
-    from worksheets.knowledge import SUQLReActParser
-
-    suql_react_parser = SUQLReActParser(
-        llm_model_name="azure/gpt-4o",  # model name
-        example_path=os.path.join(current_dir, "examples.txt"),  # path to examples
-        instruction_path=os.path.join(current_dir, "instructions.txt"),  # path to domain-specific instructions
-        table_schema_path=os.path.join(current_dir, "table_schema.txt"),  # path to table schema
-        knowledge=suql_knowledge,  # previously defined knowledge source
+    .with_parser(
+        SUQLReActParser,
+        example_path=os.path.join(current_dir, "examples.txt"),
+        instruction_path=os.path.join(current_dir, "instructions.txt"),
+        table_schema_path=os.path.join(current_dir, "table_schema.txt"),
     )
-    ```
+    .with_gsheet_specification("YOUR_SPREADSHEET_ID_HERE")
+    .build(config)
+)
+```
 
-    **Defining a Simple LLM Parser**
+### Run the conversation loop
 
+```python
+import asyncio
+from worksheets import conversation_loop
 
-    ```python
-    from worksheets.knowledge import SUQLParser
+if __name__ == "__main__":
+    # Run the conversation loop in the terminal
+    asyncio.run(conversation_loop(agent, "output_state_path.json", debug=True))
+```
 
-    suql_parser = SUQLParser(
-        llm_model_name="azure/gpt-4o",
-        prompt_selector=None,  # optional function that helps in selecting the right prompt
-        knowledge=suql_knowledge,
-    )
-    ```
+### Add prompts
 
-4. Bringing everything together
+For each agent you need to create prompts for:
+- Semantic parsing: `semantic_parsing.prompt`
+- Response generation: `response_generator.prompt`
 
-    ```python
-    from worksheets.agent import Agent
+Place these prompts in the prompt directory that you specify while creating the
+agent.
 
-    restaurant_bot = Agent(
-        botname="YelpBot",  # Name of your agent
-        description="You an assistant at Yelp and help users with all their queries related to booking a restaurant. You can search for restaurants, ask me anything about the restaurant and book a table.",
-        prompt_dir=prompt_dir,  # directory for prompts
-        starting_prompt="""Hello! I'm YelpBot. I'm here to help you find and book restaurants in four bay area cities **San Francisco, Palo Alto, Sunnyvale, and Cupertino**. What would you like to do?""",
-        args={},  # additional arguments
-        api=[book_restaurant_yelp],  # optional API functions
-        knowledge_base=suql_knowledge,  # previously defined knowledge source
-        knowledge_parser=suql_parser,  # previously defined knowledge parser
-    ).load_from_gsheet(gsheet_id="ADD YOUR SPREADSHEET ID HERE",)
-    ```
+You can copy basic annotated prompts from `experiments/sample_prompts/` 
+directory. Make changes where we have `TODO`. You need to provide a few 
+guidelines in the prompt that will help the LLM to perform better and some 
+examples. Please see `experiments/domain_agents/course_enroll/prompts/` for inspiration!
 
-    The Genie Agent uses two prompts:
+### Spreadsheet Specification
 
-    - Semantic Parsing Prompt: This is used to generate worksheet representation of the user's query. The prompt directory should contain the `semantic_parser.prompt` file.
-    - Response Generator Prompt: This is used to generate the response of the agent based on the worksheet representation and generated agent acts. The prompt directory should contain the `response_generator.prompt` file.
+To create a new agent, you should have a Google Service Account and create a new spreadsheet. 
+You can follow the instructions [here](https://cloud.google.com/iam/docs/service-account-overview) to create a Google Service Account.
+Share the created spreadsheet with the service account email.
 
-    Checkout how to create prompts in the [prompt section](./prompt.md).
+You should save the service_account key as `service_account.json` in the `genie-worksheets/` directory.
 
+Here is a starter worksheet that you can use for your reference: [Starter Worksheet](https://docs.google.com/spreadsheets/d/1ST1ixBogjEEzEhMeb-kVyf-JxGRMjtlRR6z4G2sjyb4/edit?usp=sharing)
 
-5. Finally use the `converation_loop` funcion to run the agent
+Here is a sample spreadsheet for a restaurant agent: [Restaurant Agent](https://docs.google.com/spreadsheets/d/1FXg5VFrdxQlUyld3QmKKL9BN1lLIhAtQTJjCHyNOU_Y/edit?usp=sharing)
 
-    ```python
-    from asyncio import run
-    from worksheets.interface_utils import conversation_loop
+Please note that we only use the specification defined in the first sheet of the spreadsheet.
 
-    asyncio.run(conversation_loop(restaurant_bot, output_state_path="yelp_bot.json"))
-    ```
+## LLM Config
+You should modify `llm_config.example.yaml` and save it as `llm_config.yaml` from the directory where you run the agent.
 
-    Example agents are present in `experiments/agents/` directory. You can use them as a reference to create your own 
-    agents.
+## Running the Agent (Web Interface)
+
+Create a folder `frontend/`  under `experiments/agents/<agent_name>` and create a `app_*` file.
+
+You can run the agent in a web interface by running:
+
+**NOTE:** You should run the agent in the `frontend` directory to preserve the frontend assets.
+
+For restaurant agent:
+```bash
+cd experiments/domain_agents/yelpbot/frontend/
+chainlit run app_restaurant.py --port 8800
+```
+
+Example agents are present in `experiments/agents/` directory. You can use them as a reference to create your own agents.

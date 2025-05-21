@@ -132,12 +132,18 @@ class GenieREPR(type):
             Schema string for semantic parsing
         """
         parameters = []
-        if hasattr(cls, "predicate") and (cls.predicate == "" or cls.predicate is True):
-            for field in get_genie_fields_from_ws(cls):
-                if not field.internal:
-                    parameters.append(field.schema(value=False))
-        return f"{cls.__name__}({', '.join([repr(param) for param in parameters])})"
+        for field in get_genie_fields_from_ws(cls):
+            if not field.internal:
+                # 1) get the "name: type" bit (no quotes)
+                schema_str = field.schema(value=False)
+                # 2) pull out the human-readable description
+                description = field.description or ""
+                # 3) build a line like "    full_name: str  # The user's full name"
+                parameters.append(f"    {schema_str}  # {description}")
 
+        # join them with commas and newlines, wrap in the class name
+        return f"{cls.__name__}(\n" + ",\n".join(parameters) + "\n)"
+        
 
 class GenieWorksheet(metaclass=GenieREPR):
     """Base class for Genie worksheets.

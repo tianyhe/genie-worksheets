@@ -6,7 +6,7 @@ including code modification, action handling, and query execution.
 
 import ast
 import re
-from tokenize import tokenize
+import tokenize
 from typing import Any, List, Tuple, Union
 
 from loguru import logger

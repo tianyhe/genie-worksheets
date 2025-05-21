@@ -87,4 +87,6 @@ def confirm(value: Any) -> GenieValue:
     """
     if isinstance(value, GenieValue):
         return value.confirm()
+    elif isinstance(value, GenieField):
+        return GenieValue(value.value).confirm()
     return GenieValue(value).confirm()

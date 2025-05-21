@@ -7,7 +7,7 @@ from worksheets.utils.annotation import get_agent_action_schemas, get_context_sc
 
 
 class ChainlitAgent(Agent):
-    async def generate_next_turn_cl(self, user_utterance: str):
+    async def generate_next_turn(self, user_utterance: str):
         """Generate the next turn in the dialogue based on the user's utterance for chainlit frontend.
 
         Args:
