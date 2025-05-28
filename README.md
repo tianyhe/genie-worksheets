@@ -195,6 +195,26 @@ agent = (
 )
 ```
 
+### Load the agent from a CSV file
+You can also load the agent from a CSV file. Instead of using the `with_gsheet_specification` method, you can use the `with_csv_specification` method.
+
+```python
+from worksheets import AgentBuilder, SUQLKnowledgeBase, SUQLReActParser
+import os
+
+agent = (
+    AgentBuilder(
+        name="Course Enrollment Assistant",
+        description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
+        starting_prompt=starting_prompt.render() if hasattr(starting_prompt, 'render') else starting_prompt,
+    )
+    .with_csv_specification(os.path.join(current_dir, "course_enrollment.csv"))
+    .build(config)
+)
+```
+
+
+
 ### Run the conversation loop
 
 ```python

@@ -91,7 +91,8 @@ agent_builder = (
         instruction_path=os.path.join(current_dir, "instructions.txt"),
         table_schema_path=os.path.join(current_dir, "table_schema.txt"),
     )
-    .with_gsheet_specification("1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE")
+    # .with_gsheet_specification("1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE")
+    .with_csv_specification(os.path.join(current_dir, "course_enrollment.csv"))
 )
 
 agent = agent_builder.build(config)

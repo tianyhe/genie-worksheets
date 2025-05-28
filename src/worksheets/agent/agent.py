@@ -8,7 +8,7 @@ from worksheets.core import GenieContext, GenieRuntime
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.knowledge.base import BaseKnowledgeBase
 from worksheets.knowledge.parser import BaseParser
-from worksheets.specification.from_spreadsheet import gsheet_to_genie
+from worksheets.specification.from_spreadsheet import specification_to_genie
 
 
 class Agent:
@@ -58,10 +58,11 @@ class Agent:
         self.genie_agent_policy_class = genie_agent_policy_class
         self.genie_response_generator_class = genie_response_generator_class
 
-    def load_runtime_from_gsheet(self, gsheet_id: str):
-        """Load the agent configuration from the google sheet.
+    def load_runtime_from_specification(self, csv_path: str | None = None, gsheet_id: str | None = None):
+        """Load the agent configuration from the specification.
 
         Args:
+            csv_path (str): The path to the CSV file.
             gsheet_id (str): The ID of the Google Sheet.
 
         Returns:
@@ -69,7 +70,7 @@ class Agent:
         """
 
         # Load Genie worksheets, databases, and types from the Google Sheet
-        genie_worsheets, genie_dbs, genie_types = gsheet_to_genie(gsheet_id)
+        genie_worsheets, genie_dbs, genie_types = specification_to_genie(csv_path=csv_path, gsheet_id=gsheet_id)
 
         # Create a SUQL runner if knowledge_base is provided. Suql runner is used by the
         # GenieRuntime to run queries against the knowledge base.

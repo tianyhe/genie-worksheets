@@ -1,3 +1,4 @@
+import csv
 import datetime
 from enum import Enum
 from typing import List
@@ -28,7 +29,21 @@ FIELD_VALIDATION = 13
 EMPTY_COL = 14
 
 
-def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default):
+def csv_to_classes(csv_path, **kwargs):
+    """Convert a CSV file to Genie classes.
+
+    Args:
+        csv_path (str): The path to the CSV file.
+    """
+    rows = []
+    with open(csv_path, "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            rows.append(row)
+
+    return rows_to_classes(rows)
+
+def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default, **kwargs):
     """Convert Google Sheets data to Genie classes.
 
     Args:
@@ -38,6 +53,15 @@ def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default):
     Yields:
         Tuple[str, type]: The type of the class and the class itself."""
     rows = retrieve_gsheet(gsheet_id, gsheet_range)
+    return rows_to_classes(rows)
+
+
+def rows_to_classes(rows):
+    """Convert a list of rows to Genie classes.
+
+    Args:
+        rows (list): The list of rows.
+    """
     if not rows:
         raise ValueError("No data found.")
 
@@ -209,27 +233,29 @@ str_to_type = {
     "time": datetime.time,
 }
 
-
-def gsheet_to_genie(
-    gsheet_id,
-    gsheet_range=gsheet_range_default,
-):
-    """Convert Google Sheets data to Genie componenets that are used to create the agent
+def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = None, gsheet_range: str = gsheet_range_default):
+    """Convert a specification to Genie components that are used to create the agent
 
     Args:
+        csv_path (str): The path to the CSV file.
         gsheet_id (str): The ID of the Google Sheet.
         gsheet_range (str): The range of cells to retrieve.
-
-    Returns:
-        Tuple[List[GenieWorksheet], List[GenieDB], List[GenieType]]: The lists of Genie components.
     """
+
+    if csv_path:
+        to_classes_func = csv_to_classes
+    elif gsheet_id:
+        to_classes_func = gsheet_to_classes
+    else:
+        raise ValueError("Either csv_path or gsheet_id must be provided")
+
     genie_worsheets = []
     genie_worsheets_names = {}
     genie_dbs = []
     genie_dbs_names = {}
     genie_types = []
     genie_types_names = {}
-    for genie_type, cls in gsheet_to_classes(gsheet_id, gsheet_range):
+    for genie_type, cls in to_classes_func(csv_path=csv_path, gsheet_id=gsheet_id, gsheet_range=gsheet_range):
         if genie_type == "worksheet":
             genie_worsheets.append(cls)
             genie_worsheets_names[cls.__name__] = cls
