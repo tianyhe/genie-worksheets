@@ -13,7 +13,7 @@ response_generator:
     azure_endpoint: "AZURE_HAI_ENDPOINT"
 
 knowledge_parser:
-    model_name: "gpt-4o"
+    model_name: "azure/gpt-4o"
     api_key: "AZURE_HAI_KEY"
     api_version: "2024-08-01-preview"
     azure_endpoint: "AZURE_HAI_ENDPOINT"

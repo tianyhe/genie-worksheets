@@ -27,4 +27,4 @@ current_dlg_turn.global_context = GenieContext()
 
 agent_policy_manager.run_policy(current_dlg_turn)
 
-print(current_dlg_turn.system_action)
+print(current_dlg_turn.system_action.actions)

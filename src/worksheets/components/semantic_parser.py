@@ -172,12 +172,17 @@ class KnowledgeBaseParser:
 
         for answer_query in answer_queries:
             logger.info(f"Answer query: {answer_query}")
-            suql_query, db_result, db_result_exec = await self._parse_to_suql(
+            parsing_sql_response = await self._parse_to_suql(
                 dlg_history, answer_query
             )
 
-            # if not suql_query:
-            #     continue
+            if parsing_sql_response:
+                suql_query, db_result, db_result_exec = parsing_sql_response
+            else:
+                suql_query = None
+                db_result = None
+                db_result_exec = False
+
             if suql_query:
                 tables, unfilled_params = self._process_suql_query(suql_query)
                 suql_queries.append(suql_query)

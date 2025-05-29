@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 from chainlite import write_prompt_logs_to_file
-from kraken.agent import PartToWholeParser
-from kraken.utils import DialogueTurn
 from loguru import logger
 from suql.agent import DialogueTurn as SUQLDialogueTurn
 
@@ -14,6 +12,8 @@ from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.core.runtime import GenieRuntime
 from worksheets.core.worksheet import Answer
 from worksheets.knowledge.base import SUQLKnowledgeBase
+from worksheets.kraken.agent import KrakenParser
+from worksheets.kraken.utils import DialogueTurn
 from worksheets.llm import llm_generate
 from worksheets.utils.llm import extract_code_block_from_output
 
@@ -240,7 +240,7 @@ class SUQLReActParser(BaseSUQLParser):
         source_file_mapping: dict = None,
     ):
         try:
-            parser = PartToWholeParser()
+            parser = KrakenParser()
             parser.initialize(
                 engine=self.model_config.model_name,
                 table_w_ids=table_w_ids,

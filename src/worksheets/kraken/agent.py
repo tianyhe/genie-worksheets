@@ -1,9 +1,11 @@
 import json
-import os
 
-from chainlite import chain, llm_generation_chain, load_config_from_file
-from kraken.state import Action, PartToWholeParserState, SqlQuery
-from kraken.utils import (
+from chainlite import chain, llm_generation_chain
+from langgraph.graph import END, StateGraph
+from loguru import logger
+
+from worksheets.kraken.state import Action, KrakenState, SqlQuery
+from worksheets.kraken.utils import (
     BaseParser,
     execute_sql_object,
     format_table_schema,
@@ -12,11 +14,10 @@ from kraken.utils import (
     parse_string_to_json,
     sql_string_to_sql_object,
 )
-from langgraph.graph import END, StateGraph
-from loguru import logger
+from worksheets.utils.chainlite_config import ensure_chainlite_config_loaded
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-load_config_from_file(os.path.join(CURRENT_DIR, "..", "..", "llm_config.yaml"))
+# Ensure chainlite config is loaded before using any chainlite functions
+ensure_chainlite_config_loaded()
 
 
 @chain
@@ -40,7 +41,7 @@ async def json_to_action(action_dict: dict) -> Action:
     )
 
 
-class PartToWholeParser(BaseParser):
+class KrakenParser(BaseParser):
     @classmethod
     def initialize(
         cls,
@@ -53,15 +54,12 @@ class PartToWholeParser(BaseParser):
         domain_instructions: str | None = None,
         examples: list | None = None,
         table_schema: list | None = None,
-        available_actions=[
-            "get_tables_schema",  # retrieve relevant tables based on a query
-        ],
         suql_api_base: str = None,
         suql_api_version: str = None,
     ):
         @chain
         async def initialize_state(_input):
-            return PartToWholeParserState(
+            return KrakenState(
                 question=_input["question"],
                 conversation_history=_input["conversation_history"],
                 engine=engine,
@@ -72,24 +70,25 @@ class PartToWholeParser(BaseParser):
                 domain_instructions=domain_instructions,
                 api_base=suql_api_base,
                 api_version=suql_api_version,
+                generated_sqls=[],
             )
 
         # build the graph
-        graph = StateGraph(PartToWholeParserState)
+        graph = StateGraph(KrakenState)
         graph.add_node("start", lambda x: {})
-        graph.add_node("controller", PartToWholeParser.controller)
-        graph.add_node("execute_sql", PartToWholeParser.execute_sql)
-        graph.add_node("get_tables_schema", PartToWholeParser.get_tables_schema)
+        graph.add_node("controller", KrakenParser.controller)
+        graph.add_node("execute_sql", KrakenParser.execute_sql)
+        graph.add_node("get_tables_schema", KrakenParser.get_tables_schema)
         # graph.add_node("get_examples", PartToWholeParser.get_examples)
 
-        graph.add_node("stop", PartToWholeParser.stop)
+        graph.add_node("stop", KrakenParser.stop)
 
         graph.set_entry_point("start")
 
         graph.add_edge("start", "controller")
         graph.add_conditional_edges(
             "controller",
-            PartToWholeParser.router,  # the function that will determine which node is called next.
+            KrakenParser.router,  # the function that will determine which node is called next.
         )
         for n in [
             "execute_sql",
@@ -146,7 +145,7 @@ class PartToWholeParser(BaseParser):
     @staticmethod
     async def router(state):
         move_back_on_duplicate_action = 2
-        current_action = PartToWholeParser.get_current_action(state)
+        current_action = KrakenParser.get_current_action(state)
         if current_action in state["actions"][-5:-1]:
             logger.warning(
                 "Took duplicate action %s, going back %d steps.",
@@ -199,7 +198,7 @@ class PartToWholeParser(BaseParser):
                 include_observation = False
             action_history.append(a.to_jinja_string(include_observation))
 
-        action = await PartToWholeParser.controller_chain.ainvoke(
+        action = await KrakenParser.controller_chain.ainvoke(
             {
                 "question": state["question"],
                 "action_history": action_history,
@@ -208,15 +207,15 @@ class PartToWholeParser(BaseParser):
             }
         )
         logger.debug(f"Generated action: {action}")
-        return {"actions": action, "action_counter": 1}
+        return {"actions": state["actions"] + [action], "action_counter": state["action_counter"] + 1}
 
     @staticmethod
     @chain
     async def execute_sql(state):
-        current_action = PartToWholeParser.get_current_action(state)
+        current_action = KrakenParser.get_current_action(state)
         assert current_action.action_name == "execute_sql"
         logger.debug(f"executing {current_action.action_argument}")
-        sql = await PartToWholeParser.sql_chain.ainvoke(current_action.action_argument)
+        sql = await KrakenParser.sql_chain.ainvoke(current_action.action_argument)
         current_action.action_argument = (
             sql.sql
         )  # update it with the cleaned and optimized SQL
@@ -229,12 +228,12 @@ class PartToWholeParser(BaseParser):
         else:
             current_action.observation = sql.execution_status
 
-        return {"generated_sqls": sql}
+        return {"generated_sqls": state["generated_sqls"] + [sql]}
 
     @staticmethod
     @chain
     async def get_tables_schema(state):
-        current_action = PartToWholeParser.get_current_action(state)
+        current_action = KrakenParser.get_current_action(state)
         assert current_action.action_name == "get_tables_schema"
         action_results = get_relevant_table_schema(
             current_action.action_argument, state["table_schemas"]
@@ -244,7 +243,7 @@ class PartToWholeParser(BaseParser):
     @staticmethod
     @chain
     async def get_examples(state):
-        current_action = PartToWholeParser.get_current_action(state)
+        current_action = KrakenParser.get_current_action(state)
         assert current_action.action_name == "get_examples"
         action_result = await get_relevant_examples(
             current_action.action_argument, state["examples"]
@@ -254,7 +253,7 @@ class PartToWholeParser(BaseParser):
     @staticmethod
     @chain
     async def stop(state):
-        current_action = PartToWholeParser.get_current_action(state)
+        current_action = KrakenParser.get_current_action(state)
         assert current_action.action_name == "stop"
         # print("generated_sqls = ", state["generated_sqls"])
         for s in state["generated_sqls"]:

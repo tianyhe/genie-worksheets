@@ -1,16 +1,17 @@
 import asyncio
-import os
 import warnings
 from dataclasses import dataclass
 from typing import Dict
 
-from chainlite import chain, llm_generation_chain, load_config_from_file
+from chainlite import chain, llm_generation_chain
 from json_repair import repair_json
-from kraken.state import SqlQuery
 from loguru import logger
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-load_config_from_file(os.path.join(CURRENT_DIR, "..", "..", "llm_config.yaml"))
+from worksheets.kraken.state import SqlQuery
+from worksheets.utils.chainlite_config import ensure_chainlite_config_loaded
+
+# Ensure chainlite config is loaded before using any chainlite functions
+ensure_chainlite_config_loaded()
 
 warnings.filterwarnings(
     "ignore", category=UserWarning, message="TypedStorage is deprecated"

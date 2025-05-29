@@ -5,7 +5,7 @@ description = "Genie Worksheets: A high-level, expressive and declarative specif
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "chainlite < 0.3.0",
+    "chainlite >= 0.4.4",
     "google-api-python-client>=2.149.0",
     "google-auth>=2.35.0",
     "json-repair>=0.30.0",
@@ -35,5 +35,4 @@ dev-dependencies = [
 
 [tool.uv.sources]
 suql = { git = "https://github.com/stanford-oval/suql", branch = "wip/dependencies" }
-kraken = { path = "packages/knowledge-agent", editable = true }
 

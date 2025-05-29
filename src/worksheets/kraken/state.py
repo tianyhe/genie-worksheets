@@ -1,10 +1,10 @@
 import json
-import operator
 import re
-from typing import Annotated, Optional, Sequence, TypedDict
+from typing import Optional, TypedDict
 
 import pandas as pd
-from kraken.sql_utils import execute_sql
+
+from worksheets.kraken.sql_utils import execute_sql
 
 
 def convert_sql_result_to_dict(results, column_names):
@@ -140,19 +140,6 @@ def add_item_to_list(_list: list, item) -> list:
     return ret
 
 
-class BaseParserState(TypedDict):
-    question: str
-    engine: str
-    generated_sqls: Annotated[list[SqlQuery], add_item_to_list]
-    final_sql: SqlQuery
-    action_counter: Annotated[int, operator.add]
-    examples: list[str]
-    table_schemas: list[dict[str, str]]
-    conversation_history: list
-    domain_instructions: str
-    api_base: str = None
-    api_version: str = None
-
 
 class Action:
     possible_actions = [
@@ -201,5 +188,16 @@ class Action:
         return hash((self.action_name, self.action_argument))
 
 
-class PartToWholeParserState(BaseParserState):
-    actions: Annotated[Sequence[Action], add_item_to_list]
+class KrakenState(TypedDict):
+    question: str
+    engine: str
+    generated_sqls: list[SqlQuery]
+    final_sql: SqlQuery
+    action_counter: int
+    examples: list[str]
+    table_schemas: list[dict[str, str]]
+    conversation_history: list
+    domain_instructions: str
+    api_base: str = None
+    api_version: str = None
+    actions: list[Action]
