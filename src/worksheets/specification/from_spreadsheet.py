@@ -1,5 +1,6 @@
 import csv
 import datetime
+import json
 from enum import Enum
 from typing import List
 
@@ -54,6 +55,104 @@ def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default, **kwargs):
         Tuple[str, type]: The type of the class and the class itself."""
     rows = retrieve_gsheet(gsheet_id, gsheet_range)
     return rows_to_classes(rows)
+
+def json_to_classes(json_path, **kwargs):
+    """Convert a JSON file to Genie classes.
+
+    Args:
+        json_path (str): The path to the JSON file.
+    """
+    with open(json_path, "r") as file:
+        data = json.load(file)
+    
+    # Convert JSON data to the same format that rows_to_classes expects
+    forms = []
+    
+    for worksheet in data:
+        # Create form structure
+        form_data = {
+            "form": [
+                worksheet.get("ws_predicate", "") or "",  # FORM_PREDICATE
+                worksheet.get("ws_name", "") or "",       # FORM_NAME
+                "",                                       # FIELD_PREDICATE (not used at form level)
+                worksheet.get("ws_type", "") or "",       # KIND (worksheet/db/type)
+                worksheet.get("ws_type", "") or "",       # FIELD_TYPE (same as ws_type)
+                worksheet.get("ws_backend_api", "") or "", # FIELD_NAME (backend_api)
+                "",                                       # VARIABLE_ENUMS
+                "",                                       # FIELD_DESCRIPTION
+                "",                                       # DONT_ASK
+                "",                                       # REQUIRED
+                "",                                       # FIELD_CONFIRMATION
+                worksheet.get("ws_actions", "") or "",    # FIELD_ACTION
+                worksheet.get("ws_actions", "") or "",    # FORM_ACTION
+                "",                                       # FIELD_VALIDATION
+                ""                                        # EMPTY_COL
+            ],
+            "fields": [],
+            "outputs": []
+        }
+        
+        # Process fields
+        for field in worksheet.get("fields", []):
+            # Handle enum values
+            enum_values = field.get("enum_values", [])
+            field_type = field.get("field_type", "")
+            
+            # If there are enum values, this is an Enum type
+            if enum_values and isinstance(enum_values, list):
+                field_type = "Enum"
+                # Create enum class with the values
+                enum_list = [enum_item.get("value", "") if isinstance(enum_item, dict) else str(enum_item) 
+                           for enum_item in enum_values]
+                field_type = create_enum_class(field.get("field_name", ""), enum_list)
+            
+            # Determine if field is internal based on field_kind
+            field_kind = field.get("field_kind", "input")
+            is_internal = field_kind.lower() != "input"
+            is_primary_key = "primary" in field_kind.lower()
+            
+            # Convert field to the expected format
+            field_data = {
+                "slottype": field_type,
+                "name": field.get("field_name", "") or "",
+                "description": field.get("field_description", "") or "",
+                "predicate": field.get("field_predicate", "") or "",
+                "ask": not field.get("field_dont_ask", False) or False,
+                "optional": not field.get("field_required", False) or False,
+                "actions": Action(field.get("field_actions", "") or ""),
+                "value": None,
+                "requires_confirmation": field.get("field_confirm") == "TRUE" or field.get("field_confirm") is True or False,
+                "internal": is_internal or False,
+                "primary_key": is_primary_key or False,
+                "validation": None  # Not present in JSON structure, can be added if needed
+            }
+            
+            # Determine if this is an output field (could be based on field_kind or other criteria)
+            if field_kind == "output":
+                form_data["outputs"].append({"slottype": field_type})
+            else:
+                form_data["fields"].append(field_data)
+        
+        forms.append(form_data)
+    
+    # Now process forms similar to rows_to_classes
+    for form in forms:
+        class_name = form["form"][FORM_NAME].replace(" ", "")
+        form_predicate = form["form"][FORM_PREDICATE]
+        form_action = Action(form["form"][FORM_ACTION])
+        backend_api = form["form"][FIELD_NAME]
+        outputs = form["outputs"]
+        fields = form["fields"]
+        genie_type = form["form"][FIELD_TYPE].lower()
+        yield create_class(
+            class_name,
+            fields,
+            genie_type,
+            form_predicate,
+            form_action,
+            backend_api,
+            outputs,
+        )
 
 
 def rows_to_classes(rows):
@@ -233,21 +332,27 @@ str_to_type = {
     "time": datetime.time,
 }
 
-def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = None, gsheet_range: str = gsheet_range_default):
+def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = None, json_path: str | None = None, gsheet_range: str = gsheet_range_default):
     """Convert a specification to Genie components that are used to create the agent
 
     Args:
         csv_path (str): The path to the CSV file.
         gsheet_id (str): The ID of the Google Sheet.
+        json_path (str): The path to the JSON file.
         gsheet_range (str): The range of cells to retrieve.
     """
 
     if csv_path:
         to_classes_func = csv_to_classes
+        kwargs = {"csv_path": csv_path}
     elif gsheet_id:
         to_classes_func = gsheet_to_classes
+        kwargs = {"gsheet_id": gsheet_id, "gsheet_range": gsheet_range}
+    elif json_path:
+        to_classes_func = json_to_classes
+        kwargs = {"json_path": json_path}
     else:
-        raise ValueError("Either csv_path or gsheet_id must be provided")
+        raise ValueError("Either csv_path, gsheet_id, or json_path must be provided")
 
     genie_worsheets = []
     genie_worsheets_names = {}
@@ -255,7 +360,7 @@ def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = 
     genie_dbs_names = {}
     genie_types = []
     genie_types_names = {}
-    for genie_type, cls in to_classes_func(csv_path=csv_path, gsheet_id=gsheet_id, gsheet_range=gsheet_range):
+    for genie_type, cls in to_classes_func(**kwargs):
         if genie_type == "worksheet":
             genie_worsheets.append(cls)
             genie_worsheets_names[cls.__name__] = cls

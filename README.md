@@ -213,7 +213,25 @@ agent = (
 )
 ```
 
+### Load the agent from a JSON file
+You can also load the agent from a JSON file. Instead of using the `with_gsheet_specification` method, you can use the `with_json_specification` method.
 
+```python
+from worksheets import AgentBuilder, SUQLKnowledgeBase, SUQLReActParser
+import os
+
+agent = (
+    AgentBuilder(
+        name="Course Enrollment Assistant",
+        description="You are a course enrollment assistant. You can help students with course selection and enrollment.",
+        starting_prompt=starting_prompt.render() if hasattr(starting_prompt, 'render') else starting_prompt,
+    )
+    .with_json_specification(os.path.join(current_dir, "course_enrollment.json"))
+    .build(config)
+)
+```
+
+A sample JSON file is present in `experiments/domain_agents/course_enroll/course_enrollment.json`.
 
 ### Run the conversation loop
 
