@@ -103,6 +103,11 @@ class AgentBuilder:
         self.csv_path = csv_path
         return self
 
+    def with_json_specification(self, json_path: str):
+        """Use a JSON file to specify the agent dialogue state"""
+        self.json_path = json_path
+        return self
+
     def _discover_registered_apis(self):
         """Auto-discover all APIs registered with @agent_api"""
         for api in _AGENT_API_REGISTRY:
@@ -148,8 +153,10 @@ class AgentBuilder:
             agent.load_runtime_from_specification(gsheet_id=self.gsheet_id)
         elif hasattr(self, "csv_path"):
             agent.load_runtime_from_specification(csv_path=self.csv_path)
+        elif hasattr(self, "json_path"):
+            agent.load_runtime_from_specification(json_path=self.json_path)
         else:
-            raise ValueError("Either gsheet_id or csv_path must be provided")
+            raise ValueError("Either gsheet_id, csv_path, or json_path must be provided")
 
         return agent
 

@@ -248,6 +248,7 @@ class SUQLReActParser(BaseSUQLParser):
                 suql_model_name=self.knowledge.model_config.model_name,
                 suql_api_base=self.knowledge.model_config.azure_endpoint,
                 suql_api_version=self.knowledge.model_config.api_version,
+                suql_api_key=self.knowledge.model_config.api_key,
                 embedding_server_address=embedding_server_address,
                 source_file_mapping=source_file_mapping,
                 domain_instructions=self.instructions,

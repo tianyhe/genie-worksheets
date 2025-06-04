@@ -79,6 +79,7 @@ class SqlQuery:
         source_file_mapping,
         api_base=None,
         api_version=None,
+        api_key=None,
     ):
         # TODO: probably need to perform some post processing by using column_names with self.execution_result
         execution_result, column_names, self.execution_status = execute_sql(
@@ -90,6 +91,7 @@ class SqlQuery:
             source_file_mapping,
             api_base=api_base,
             api_version=api_version,
+            api_key=api_key,
         )
 
         if execution_result is not None:
@@ -200,4 +202,5 @@ class KrakenState(TypedDict):
     domain_instructions: str
     api_base: str = None
     api_version: str = None
+    api_key: str = None
     actions: list[Action]

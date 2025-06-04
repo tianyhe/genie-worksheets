@@ -3,6 +3,7 @@ import os
 import random
 from uuid import uuid4
 
+import litellm
 from suql.agent import postprocess_suql
 
 from worksheets import (
@@ -15,6 +16,8 @@ from worksheets import (
 from worksheets.agent.builder import TemplateLoader
 from worksheets.agent.config import agent_api
 from worksheets.core.worksheet import get_genie_fields_from_ws
+
+litellm._turn_on_debug()
 
 # Define your APIs
 course_is_full = {}
@@ -91,8 +94,9 @@ agent_builder = (
         instruction_path=os.path.join(current_dir, "instructions.txt"),
         table_schema_path=os.path.join(current_dir, "table_schema.txt"),
     )
-    # .with_gsheet_specification("1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE")
-    .with_csv_specification(os.path.join(current_dir, "course_enrollment.csv"))
+    .with_gsheet_specification("1ejyFlZUrUZiBmFP3dLcVNcKqzAAfw292-LmyHXSFsTE")
+    # .with_csv_specification(os.path.join(current_dir, "course_enrollment.csv"))
+    # .with_json_specification(os.path.join(current_dir, "course_enrollment.json"))
 )
 
 agent = agent_builder.build(config)

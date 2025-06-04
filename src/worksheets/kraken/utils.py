@@ -82,6 +82,7 @@ def execute_sql_object(
     suql_model_name,
     api_base=None,
     api_version=None,
+    api_key=None,
 ) -> str:
     sql.execute(
         table_w_ids,
@@ -91,6 +92,7 @@ def execute_sql_object(
         source_file_mapping,
         api_base=api_base,
         api_version=api_version,
+        api_key=api_key,
     )
     return sql
 

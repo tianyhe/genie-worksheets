@@ -56,6 +56,7 @@ class KrakenParser(BaseParser):
         table_schema: list | None = None,
         suql_api_base: str = None,
         suql_api_version: str = None,
+        suql_api_key: str = None,
     ):
         @chain
         async def initialize_state(_input):
@@ -70,6 +71,7 @@ class KrakenParser(BaseParser):
                 domain_instructions=domain_instructions,
                 api_base=suql_api_base,
                 api_version=suql_api_version,
+                api_key=suql_api_key,
                 generated_sqls=[],
             )
 
@@ -130,6 +132,7 @@ class KrakenParser(BaseParser):
             source_file_mapping=source_file_mapping,
             api_base=suql_api_base,
             api_version=suql_api_version,
+            api_key=suql_api_key,
         )
 
         compiled_graph = graph.compile()

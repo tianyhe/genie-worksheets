@@ -78,6 +78,7 @@ class SUQLKnowledgeBase(BaseKnowledgeBase):
             port=self.db_port,
             api_base=api_base,
             api_version=api_version,
+            api_key=self.model_config.api_key,
         )
 
         # Convert the results to a list of dictionaries for genie worksheets

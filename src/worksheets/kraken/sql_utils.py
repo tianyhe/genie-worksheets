@@ -12,6 +12,7 @@ def execute_sql(
     source_file_mapping: Dict = {},
     api_base=None,
     api_version=None,
+    api_key=None,
 ):
 
     try:
@@ -26,6 +27,7 @@ def execute_sql(
             disable_try_catch_all_sql=True,
             api_base=api_base,
             api_version=api_version,
+            api_key=api_key,
         )
         status = None
     except Exception as e:
