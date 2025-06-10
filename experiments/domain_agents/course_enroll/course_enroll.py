@@ -3,7 +3,6 @@ import os
 import random
 from uuid import uuid4
 
-import litellm
 from suql.agent import postprocess_suql
 
 from worksheets import (
@@ -17,8 +16,6 @@ from worksheets.agent.builder import TemplateLoader
 from worksheets.agent.config import agent_api
 from worksheets.core.worksheet import get_genie_fields_from_ws
 
-litellm._turn_on_debug()
-
 # Define your APIs
 course_is_full = {}
 
@@ -28,11 +25,11 @@ def course_detail_to_individual_params(course_detail):
     if course_detail.value is None:
         return {}
     course_detail = course_detail.value
-    course_detail = {}
+    course_details = {}
     for field in get_genie_fields_from_ws(course_detail):
-        course_detail[field.name] = field.value
+        course_details[field.name] = field.value
 
-    return course_detail
+    return course_details
 
 
 @agent_api("courses_to_take_oval", "Enroll into a course")
