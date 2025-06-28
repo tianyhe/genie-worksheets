@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  genie:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: genie-worksheets:dev
+    env_file:
+      - dev.env
+    volumes:
+      - ./:/app
+    working_dir: /app
+    tty: true
+    user: root 

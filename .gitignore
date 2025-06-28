@@ -193,3 +193,5 @@ course_assistant_bot_new_notworking.json
 logs/
 data/
 .cursor/
+*_agent.json
+dev.env
