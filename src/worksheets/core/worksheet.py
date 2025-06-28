@@ -83,6 +83,7 @@ class Action:
 
         # Context management
         if local_context.context["__return"] is not None:
+            logger.debug(f"__return: {local_context.context['__return']}")
             acts.extend(local_context.context["__return"])
         del local_context.context["__return"]
 
@@ -90,6 +91,24 @@ class Action:
             del local_context.context["_obj"]
 
         return acts
+
+
+def find_genie_type(cls_or_obj):
+    """
+    Return the GenieType base class if present, else None.
+
+    Accepts either a class object or an instance.
+    """
+    import inspect
+
+    # Normalize to a class object
+    cls = cls_or_obj if inspect.isclass(cls_or_obj) else type(cls_or_obj)
+
+    # Look for a base whose name is exactly 'GenieType'
+    return next(
+        (base for base in inspect.getmro(cls) if base.__name__ == "GenieType"),
+        None,  # ← default returned when not found
+    )
 
 
 class GenieREPR(type):
@@ -132,6 +151,17 @@ class GenieREPR(type):
             Schema string for semantic parsing
         """
         parameters = []
+
+        # --- option 1: grab GenieType directly -----------------------
+        is_genie_type = find_genie_type(cls)
+        if is_genie_type:
+            is_genie_type = True
+        else:
+            is_genie_type = False
+
+        if is_genie_type:
+            return f"TYPE: {cls.__name__}"
+
         for field in get_genie_fields_from_ws(cls):
             if not field.internal:
                 # 1) get the "name: type" bit (no quotes)
@@ -139,11 +169,13 @@ class GenieREPR(type):
                 # 2) pull out the human-readable description
                 description = field.description or ""
                 # 3) build a line like "    full_name: str  # The user's full name"
-                parameters.append(f"    {schema_str}  # {description}")
+                parameters.append(f"    {schema_str},  # {description}")
 
+        if len(parameters) == 0:
+            return f"{cls.__name__}()"
         # join them with commas and newlines, wrap in the class name
-        return f"{cls.__name__}(\n" + ",\n".join(parameters) + "\n)"
-        
+        return f"{cls.__name__}(\n" + "\n".join(parameters) + "\n)"
+
 
 class GenieWorksheet(metaclass=GenieREPR):
     """Base class for Genie worksheets.

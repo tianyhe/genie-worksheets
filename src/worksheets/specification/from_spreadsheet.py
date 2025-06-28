@@ -44,6 +44,7 @@ def csv_to_classes(csv_path, **kwargs):
 
     return rows_to_classes(rows)
 
+
 def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default, **kwargs):
     """Convert Google Sheets data to Genie classes.
 
@@ -56,6 +57,7 @@ def gsheet_to_classes(gsheet_id, gsheet_range=gsheet_range_default, **kwargs):
     rows = retrieve_gsheet(gsheet_id, gsheet_range)
     return rows_to_classes(rows)
 
+
 def json_to_classes(json_path, **kwargs):
     """Convert a JSON file to Genie classes.
 
@@ -64,53 +66,57 @@ def json_to_classes(json_path, **kwargs):
     """
     with open(json_path, "r") as file:
         data = json.load(file)
-    
+
     # Convert JSON data to the same format that rows_to_classes expects
     forms = []
-    
+
     for worksheet in data:
         # Create form structure
         form_data = {
             "form": [
                 worksheet.get("ws_predicate", "") or "",  # FORM_PREDICATE
-                worksheet.get("ws_name", "") or "",       # FORM_NAME
-                "",                                       # FIELD_PREDICATE (not used at form level)
-                worksheet.get("ws_type", "") or "",       # KIND (worksheet/db/type)
-                worksheet.get("ws_type", "") or "",       # FIELD_TYPE (same as ws_type)
-                worksheet.get("ws_backend_api", "") or "", # FIELD_NAME (backend_api)
-                "",                                       # VARIABLE_ENUMS
-                "",                                       # FIELD_DESCRIPTION
-                "",                                       # DONT_ASK
-                "",                                       # REQUIRED
-                "",                                       # FIELD_CONFIRMATION
-                worksheet.get("ws_actions", "") or "",    # FIELD_ACTION
-                worksheet.get("ws_actions", "") or "",    # FORM_ACTION
-                "",                                       # FIELD_VALIDATION
-                ""                                        # EMPTY_COL
+                worksheet.get("ws_name", "") or "",  # FORM_NAME
+                "",  # FIELD_PREDICATE (not used at form level)
+                worksheet.get("ws_type", "") or "",  # KIND (worksheet/db/type)
+                worksheet.get("ws_type", "") or "",  # FIELD_TYPE (same as ws_type)
+                worksheet.get("ws_backend_api", "") or "",  # FIELD_NAME (backend_api)
+                "",  # VARIABLE_ENUMS
+                "",  # FIELD_DESCRIPTION
+                "",  # DONT_ASK
+                "",  # REQUIRED
+                "",  # FIELD_CONFIRMATION
+                worksheet.get("ws_actions", "") or "",  # FIELD_ACTION
+                worksheet.get("ws_actions", "") or "",  # FORM_ACTION
+                "",  # FIELD_VALIDATION
+                "",  # EMPTY_COL
             ],
             "fields": [],
-            "outputs": []
+            "outputs": [],
         }
-        
+
         # Process fields
         for field in worksheet.get("fields", []):
             # Handle enum values
             enum_values = field.get("enum_values", [])
             field_type = field.get("field_type", "")
-            
+
             # If there are enum values, this is an Enum type
             if enum_values and isinstance(enum_values, list):
                 field_type = "Enum"
                 # Create enum class with the values
-                enum_list = [enum_item.get("value", "") if isinstance(enum_item, dict) else str(enum_item) 
-                           for enum_item in enum_values]
+                enum_list = [
+                    enum_item.get("value", "")
+                    if isinstance(enum_item, dict)
+                    else str(enum_item)
+                    for enum_item in enum_values
+                ]
                 field_type = create_enum_class(field.get("field_name", ""), enum_list)
-            
+
             # Determine if field is internal based on field_kind
             field_kind = field.get("field_kind", "input")
             is_internal = field_kind.lower() != "input"
             is_primary_key = "primary" in field_kind.lower()
-            
+
             # Convert field to the expected format
             field_data = {
                 "slottype": field_type,
@@ -121,20 +127,22 @@ def json_to_classes(json_path, **kwargs):
                 "optional": not field.get("field_required", False) or False,
                 "actions": Action(field.get("field_actions", "") or ""),
                 "value": None,
-                "requires_confirmation": field.get("field_confirm") == "TRUE" or field.get("field_confirm") is True or False,
+                "requires_confirmation": field.get("field_confirm") == "TRUE"
+                or field.get("field_confirm") is True
+                or False,
                 "internal": is_internal or False,
                 "primary_key": is_primary_key or False,
-                "validation": None  # Not present in JSON structure, can be added if needed
+                "validation": None,  # Not present in JSON structure, can be added if needed
             }
-            
+
             # Determine if this is an output field (could be based on field_kind or other criteria)
             if field_kind == "output":
                 form_data["outputs"].append({"slottype": field_type})
             else:
                 form_data["fields"].append(field_data)
-        
+
         forms.append(form_data)
-    
+
     # Now process forms similar to rows_to_classes
     for form in forms:
         class_name = form["form"][FORM_NAME].replace(" ", "")
@@ -332,7 +340,13 @@ str_to_type = {
     "time": datetime.time,
 }
 
-def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = None, json_path: str | None = None, gsheet_range: str = gsheet_range_default):
+
+def specification_to_genie(
+    csv_path: str | None = None,
+    gsheet_id: str | None = None,
+    json_path: str | None = None,
+    gsheet_range: str = gsheet_range_default,
+):
     """Convert a specification to Genie components that are used to create the agent
 
     Args:
@@ -410,6 +424,9 @@ def specification_to_genie(csv_path: str | None = None, gsheet_id: str | None = 
             elif output in genie_types_names:
                 ws.outputs[ws.outputs.index(output)] = genie_types_names[output]
             else:
-                raise ValueError(f"Unknown type {output}")
+                if output in str_to_type:
+                    ws.outputs[ws.outputs.index(output)] = str_to_type[output]
+                else:
+                    raise ValueError(f"Unknown type {output}")
 
     return genie_worsheets, genie_dbs, genie_types

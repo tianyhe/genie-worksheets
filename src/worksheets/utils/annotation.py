@@ -154,9 +154,12 @@ def get_context_schema(context, response_generator=False):
     Returns:
         str: A string representation of the context schema with escaped backslashes removed.
     """
-    schema = ""
+    # Generating schema with separation of completed and active worksheets/APIs
+    completed_parts = []
+    active_parts = []
 
     for key, value in context.context.items():
+        # Handle list of GenieType values first (same logic as before)
         if isinstance(value, list):
             bad_list = False
             for val in value:
@@ -165,11 +168,32 @@ def get_context_schema(context, response_generator=False):
                     break
 
             if not bad_list:
-                schema += key + " = " + str(value) + "\n"
+                active_parts.append(f"{key} = {str(value)}\n")
+            continue
+
+        # Handle individual GenieWorksheet / Answer / GenieType, etc.
+        new_schema = handle_genie_type(key, value, context, response_generator)
+        if not new_schema:
+            continue
+
+        # Classify into completed vs active based on action_performed flag
+        if isinstance(value, GenieWorksheet) and getattr(
+            value, "action_performed", False
+        ):
+            completed_parts.append(new_schema)
         else:
-            new_schema = handle_genie_type(key, value, context, response_generator)
-            if new_schema:
-                schema += new_schema
+            active_parts.append(new_schema)
+
+    # Assemble final output
+    if completed_parts:
+        schema = (
+            "### Completed APIs\n"
+            + "".join(completed_parts)
+            + "### Active APIs\n"
+            + "".join(active_parts)
+        )
+    else:
+        schema = "".join(active_parts)
 
     return schema.replace("\\", "")
 

@@ -136,7 +136,7 @@ class KnowledgeBaseParser:
     information, and generating SUQL queries with proper parameter handling.
 
     Attributes:
-        bot (GenieRuntime): The bot runtime instance for database access.
+        runtime (GenieRuntime): The bot runtime instance for database access.
     """
 
     def __init__(self, runtime: GenieRuntime, parser):
@@ -172,9 +172,7 @@ class KnowledgeBaseParser:
 
         for answer_query in answer_queries:
             logger.info(f"Answer query: {answer_query}")
-            parsing_sql_response = await self._parse_to_suql(
-                dlg_history, answer_query
-            )
+            parsing_sql_response = await self._parse_to_suql(dlg_history, answer_query)
 
             if parsing_sql_response:
                 suql_query, db_result, db_result_exec = parsing_sql_response
@@ -261,7 +259,7 @@ class KnowledgeBaseParser:
             Dict[str, List[str]]: A dictionary mapping table names to their primary keys.
         """
         mapping = {}
-        for db in self.bot.genie_db_models:
+        for db in self.runtime.genie_db_models:
             for field in get_genie_fields_from_ws(db):
                 if field.primary_key:
                     mapping[db.__name__] = [field.name]
@@ -352,7 +350,7 @@ class GenieParser:
         """Initialize the GenieParser.
 
         Args:
-            bot (GenieRuntime): The bot runtime instance.
+            runtime (GenieRuntime): The bot runtime instance.
         """
         self.runtime = runtime
         self.contextual_parser = ContextualSemanticParser(runtime, agent)

@@ -231,6 +231,7 @@ def rewrite_action_code(code: str, builtin_funcs: List[str]) -> str:
             self.generic_visit(node)
 
             if isinstance(node.func, ast.Name) and node.func.id in self.builtins:
+                # if isinstance(node.func, ast.Name):
                 logger.debug(f"Transforming built-in function call: {node.func.id}")
                 return ast.Expr(
                     value=ast.Call(

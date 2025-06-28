@@ -56,6 +56,15 @@ def generate_clarification(worksheet: GenieWorksheet, field: str) -> str:
     return ""
 
 
+def no_response(message: str) -> ReportAgentAct:
+    """Create a cannot answer action.
+
+    Args:
+        message (str): The message to report.
+    """
+    return ReportAgentAct(None, message)
+
+
 def answer_clarification_question(
     worksheet: GenieField, field: GenieField, context: GenieContext
 ) -> ReportAgentAct:

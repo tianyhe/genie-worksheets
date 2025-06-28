@@ -19,7 +19,7 @@ def get_genie_fields_from_ws(obj: Any) -> list:
     Returns:
         List of GenieField instances
     """
-    logger.debug(f"Getting fields from worksheet: {obj.__class__.__name__}")
+    # logger.debug(f"Getting fields from worksheet: {obj.__class__.__name__}")
     fields = []
 
     try:
@@ -33,7 +33,7 @@ def get_genie_fields_from_ws(obj: Any) -> list:
                     logger.debug(f"Found field: {attr}")
                     fields.append(field)
 
-        logger.debug(f"Found {len(fields)} fields in worksheet")
+        # logger.debug(f"Found {len(fields)} fields in worksheet")
         return fields
     except AttributeError as e:
         logger.error(f"Error getting fields from worksheet: {str(e)}")

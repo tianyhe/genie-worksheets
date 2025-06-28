@@ -11,6 +11,7 @@ from uvicorn import Config
 from worksheets.core.builtin_functions import (
     answer_clarification_question,
     confirm,
+    no_response,
     propose,
     say,
 )
@@ -90,6 +91,7 @@ class GenieRuntime:
                 Answer,
                 MoreFieldInfo,
                 say,
+                no_response,
             ]
         )
         for api in apis:
@@ -304,6 +306,9 @@ class GenieInterpreter:
         except Exception as e:
             logger.error(f"Error: {e}")
             logger.error(f"Code: {code}")
+            import ipdb
+
+            ipdb.set_trace()
 
     def eval(self, code, global_context, local_context):
         # perform rewrite to update any variables that is not in the local context

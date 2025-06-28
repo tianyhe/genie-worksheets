@@ -6,7 +6,7 @@ from worksheets.utils.annotation import get_context_schema
 local_context = GenieContext()
 agent.runtime.execute(
     """
-main = Main()""",
+main = Main(student_info=StudentInfo(name='John Doe', student_id='1234567890'))""",
     local_context,
     sp=True,
 )

@@ -29,6 +29,7 @@ class AgentBuilder:
         self._kb_args: dict = {}
         self._parser_args: dict = {}
         self.auto_discover_apis = True  # New flag to control auto-discovery
+        self._initial_context: dict = {}  # Store initial context variables
 
     def add_api(self, func: callable, description: str = None):
         """Register an API with name and optional description"""
@@ -108,6 +109,11 @@ class AgentBuilder:
         self.json_path = json_path
         return self
 
+    def with_initial_context(self, **context):
+        """Set initial context variables that will be available to the agent at runtime."""
+        self._initial_context = context
+        return self
+
     def _discover_registered_apis(self):
         """Auto-discover all APIs registered with @agent_api"""
         for api in _AGENT_API_REGISTRY:
@@ -156,7 +162,14 @@ class AgentBuilder:
         elif hasattr(self, "json_path"):
             agent.load_runtime_from_specification(json_path=self.json_path)
         else:
-            raise ValueError("Either gsheet_id, csv_path, or json_path must be provided")
+            raise ValueError(
+                "Either gsheet_id, csv_path, or json_path must be provided"
+            )
+
+        # Inject the initial context into the runtime if provided
+        if self._initial_context:
+            agent.runtime.context.update(self._initial_context)
+            agent.runtime.local_context_init.update(self._initial_context)
 
         return agent
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Type, Union
 
 from loguru import logger
 
+from worksheets.config.settings import OPEN_NEW_WORKSHEET_IF_POSSIBLE
 from worksheets.core import (
     CurrentDialogueTurn,
     GenieContext,
@@ -306,12 +307,16 @@ class ActionPolicyExecutor:
                 )
                 if field.value is not None:
                     if field.requires_confirmation and field.confirmed:
-                        logger.debug(f"Handling field that requires confirmation and is confirmed: {field.name}")
+                        logger.debug(
+                            f"Handling field that requires confirmation and is confirmed: {field.name}"
+                        )
                         ActionPolicyExecutor._handle_confirmed_field(
                             field, obj, bot, local_context, agent_acts
                         )
                     elif not field.requires_confirmation:
-                        logger.debug(f"Handling field that does not require confirmation: {field.name}")
+                        logger.debug(
+                            f"Handling field that does not require confirmation: {field.name}"
+                        )
                         ActionPolicyExecutor._handle_unconfirmed_field(
                             field, obj, bot, local_context, agent_acts
                         )
@@ -565,6 +570,11 @@ class QuestionPolicyManager:
         """
         logger.debug(f"Handling no open worksheet for: {obj_name}")
 
+        # Respect runtime setting – bail early if automatic worksheet creation is disabled
+        if not OPEN_NEW_WORKSHEET_IF_POSSIBLE:
+            logger.debug("Automatic worksheet creation disabled via config—skipping.")
+            return
+
         if inspect.isclass(obj) and issubclass(obj, GenieWorksheet):
             logger.debug(f"Object {obj_name} is a worksheet class")
             if eval_predicates(obj.predicate, obj, bot, local_context):
@@ -724,7 +734,10 @@ class AgentPolicyManager:
         )
 
         # Check for additional acts if possible
-        if self.bot.context.agent_acts.can_have_other_acts():
+        if (
+            OPEN_NEW_WORKSHEET_IF_POSSIBLE
+            and self.bot.context.agent_acts.can_have_other_acts()
+        ):
             logger.debug("Checking for additional available worksheets")
             code_strings = self.worksheet_manager.get_available_worksheets(
                 turn_context, self.bot
