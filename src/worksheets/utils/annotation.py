@@ -9,7 +9,7 @@ from typing import Any, List, Optional
 
 from loguru import logger
 
-from worksheets.core.worksheet import Answer, GenieType, GenieWorksheet
+from worksheets.core.worksheet import Answer, GenieResult, GenieType, GenieWorksheet
 from worksheets.utils.variable import find_list_variable
 
 
@@ -118,6 +118,22 @@ def _format_worksheet_schema(
     return "\n".join(schema) + "\n"
 
 
+def _format_result_schema(key: str, result: GenieResult, context: Any) -> str:
+    """Format the schema string for a GenieResult object.
+
+    Args:
+        key: The variable name
+        result: The GenieResult object
+        context: Context object containing variable information
+
+    Returns:
+        Formatted schema string
+    """
+    schema = []
+    schema.append(f"{key} = {str(result.value)}")
+    return "\n".join(schema) + "\n"
+
+
 def handle_genie_type(
     key: str, value: Any, context: Any, response_generator: bool
 ) -> Optional[str]:
@@ -140,6 +156,9 @@ def handle_genie_type(
 
     if isinstance(value, GenieWorksheet):
         return _format_worksheet_schema(key, value, context)
+
+    if isinstance(value, GenieResult):
+        return _format_result_schema(key, value, context)
 
     return None
 
@@ -243,17 +262,18 @@ def prepare_context_input(runtime, dlg_history, current_dlg_turn, starting_promp
         Returns:
             tuple: A tuple containing (state_schema, agent_acts, agent_utterance).
     """
+    state_schema = get_context_schema(runtime.context)
     if len(dlg_history):
-        state_schema = get_context_schema(runtime.context)
         agent_acts = pretty_print_actions(
             get_agent_action_schemas(dlg_history[-1].system_action, runtime.context),
             indent=2,
         )
         agent_utterance = dlg_history[-1].system_response
     else:
-        state_schema = "None"
         agent_acts = "None"
         agent_utterance = starting_prompt
+
+    state_schema = "None" if state_schema == "" else state_schema
 
     return state_schema, agent_acts, agent_utterance
 

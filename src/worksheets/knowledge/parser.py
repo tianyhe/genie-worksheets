@@ -1,8 +1,12 @@
+import json
 import os
 from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import List, Optional
 
+import pandas as pd
+import requests
 from chainlite import write_prompt_logs_to_file
 from loguru import logger
 from suql.agent import DialogueTurn as SUQLDialogueTurn
@@ -18,6 +22,14 @@ from worksheets.llm import llm_generate
 from worksheets.utils.llm import extract_code_block_from_output
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+@dataclass
+class DatatalkDialogueTurn:
+    question: str
+    action_history: List[dict]
+    entity_linking_results: dict
+    response: str
 
 
 class BaseParser(ABC):
@@ -179,7 +191,7 @@ class SUQLReActParser(BaseSUQLParser):
         self.table_schema = table_schema
         self.conversation_history = conversation_history
 
-        if self.examples is None:
+        if self.examples is None and self.example_path is not None:
             self.examples = []
             with open(self.example_path, "r") as f:
                 text = f.read()
@@ -188,11 +200,11 @@ class SUQLReActParser(BaseSUQLParser):
                 if example.strip():
                     self.examples.append(example.strip())
 
-        if self.instructions is None:
+        if self.instructions is None and self.instruction_path is not None:
             with open(self.instruction_path, "r") as f:
                 self.instructions = f.readlines()
 
-        if self.table_schema is None:
+        if self.table_schema is None and self.table_schema_path is not None:
             with open(self.table_schema_path, "r") as f:
                 self.table_schema = f.read()
 
@@ -250,6 +262,10 @@ class SUQLReActParser(BaseSUQLParser):
                 suql_api_version=self.knowledge.model_config.api_version,
                 suql_api_key=self.knowledge.model_config.api_key,
                 embedding_server_address=embedding_server_address,
+                db_host=self.knowledge.db_host,
+                db_port=self.knowledge.db_port,
+                db_username=self.knowledge.db_username,
+                db_password=self.knowledge.db_password,
                 source_file_mapping=source_file_mapping,
                 domain_instructions=self.instructions,
                 examples=self.examples,
@@ -279,3 +295,141 @@ class SUQLReActParser(BaseSUQLParser):
         )
 
         conversation_history.append(turn)
+
+
+class DatatalkParser(SUQLReActParser):
+    """Datatalk Parser for SUQL queries"""
+
+    def __init__(
+        self,
+        model_config: AzureModelConfig | OpenAIModelConfig,
+        domain: str,
+        api_key: str | None = None,
+        **kwargs,
+    ):
+        super().__init__(
+            model_config=model_config,
+            table_schema_path=None,
+            instruction_path=None,
+            example_path=None,
+            **kwargs,
+        )
+        self.domain = domain
+        self.api_key = api_key
+
+    async def anext_turn(
+        self,
+        user_input: str,
+        update_conversation_history: bool = False,
+        table_w_ids: dict = None,
+        database_name: str = None,
+        embedding_server_address: str = None,
+        source_file_mapping: dict = None,
+    ):
+        # Define the API endpoint and the API key
+        api_url = "http://localhost:8791/api"  # Adjust the URL if your server is running on a different host or port
+        api_key = self.api_key if self.api_key else os.getenv("DATATALK_API")
+
+        # Set up the parameters for the GET request
+        conv_hist_serializable = [asdict(t) for t in self.conversation_history]
+        params = {
+            "question": user_input,
+            "domain": self.domain,
+            "api_key": api_key,
+            "conversation_history": json.dumps(conv_hist_serializable),
+            "file_path": "/home/oval/storm/datatalk/sql_results",
+            "save_result_to_csv": True,
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(
+            api_url,
+            headers=headers,
+            json=params,
+            params={"api_key": api_key},
+            timeout=600,
+        )
+        response = response.json()
+
+        df = pd.read_csv(response["csv_path"])
+        json_data = df.to_dict(orient="records")
+        response["sql_result"] = json_data
+        response["questions"] = user_input
+
+        if update_conversation_history:
+            self.update_turn(self.conversation_history, response, response=None)
+
+        return response
+
+    def convert_dlg_turn_to_suql_dlg_turn(self, dlg_history, db_results):
+        # Convert the dialog history to the expected format for SUQL
+        suql_dlg_history = []
+        for i, turn in enumerate(dlg_history):
+            agent_utterance = turn.system_response
+            user_utterance = turn.user_utterance
+
+            if db_results is None:
+                db_result = [
+                    obj.result
+                    for obj in turn.context.context.values()
+                    if isinstance(obj, Answer)
+                    and obj.query.value == turn.user_target_suql
+                ]
+            else:
+                db_result = db_results[i]
+
+            suql_dlg_history.append(
+                DatatalkDialogueTurn(
+                    question=user_utterance,
+                    action_history=[],
+                    entity_linking_results={},
+                    response=agent_utterance,
+                )
+            )
+
+        return suql_dlg_history
+
+    def update_turn(self, conversation_history, output, response):
+        turn = DialogueTurn(
+            user_utterance=output["question"],
+            agent_utterance=response,
+            user_target=output["generated_sql"],
+            db_results=output["sql_result"],
+        )
+
+        conversation_history.append(turn)
+
+    async def parse(
+        self,
+        query: str,
+        dlg_history: List[CurrentDialogueTurn],
+        runtime: GenieRuntime,
+        db_results: List[str] | None = None,
+    ):
+        suql_dlg_history = self.convert_dlg_turn_to_suql_dlg_turn(
+            dlg_history, db_results
+        )
+
+        self.conversation_history = suql_dlg_history
+
+        output = await self.anext_turn(
+            query,
+            update_conversation_history=False,
+            table_w_ids=self.knowledge.tables_with_primary_keys,
+            database_name=self.knowledge.database_name,
+            embedding_server_address=self.knowledge.embedding_server_address,
+            source_file_mapping=self.knowledge.source_file_mapping,
+        )
+
+        # TODO: KeyError: 'final_sql'
+        # happens when the action_counter limit is met without a final SQL being generated
+        logger.info(f"SUQL output: {output}")
+        try:
+            final_output = output["generated_sql"]
+            final_result = output["sql_result"]
+        except Exception as e:
+            logger.error(f"Error in parsing output: {e}")
+            final_output = None
+            final_result = None
+        return final_output, final_result, True

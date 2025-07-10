@@ -50,6 +50,10 @@ class KrakenParser(BaseParser):
         database_name: str,
         suql_model_name: str,
         embedding_server_address: str = "http://127.0.0.1:8509",
+        db_host: str = "127.0.0.1",
+        db_port: str = "5432",
+        db_username: str = "select_user",
+        db_password: str = "select_user",
         source_file_mapping: dict = {},
         domain_instructions: str | None = None,
         examples: list | None = None,
@@ -133,6 +137,10 @@ class KrakenParser(BaseParser):
             api_base=suql_api_base,
             api_version=suql_api_version,
             api_key=suql_api_key,
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
         )
 
         compiled_graph = graph.compile()
@@ -210,7 +218,10 @@ class KrakenParser(BaseParser):
             }
         )
         logger.debug(f"Generated action: {action}")
-        return {"actions": state["actions"] + [action], "action_counter": state["action_counter"] + 1}
+        return {
+            "actions": state["actions"] + [action],
+            "action_counter": state["action_counter"] + 1,
+        }
 
     @staticmethod
     @chain

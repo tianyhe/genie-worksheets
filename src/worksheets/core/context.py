@@ -66,9 +66,18 @@ class GenieContext:
             value (Any): The value to set.
         """
         if key != "answer" and key in self.context:
-            if not isinstance(self.context[key], list):
+            if (
+                hasattr(value, "action_performed")
+                and value.is_complete(self.bot, self)
+                and value.action_performed
+                and hasattr(value, "backend_api")
+            ):
+                self.context[key] = value.result  # set the result to the context
+                self.context[f"___{key}"] = value  # set the complete api to the context
+            elif not isinstance(self.context[key], list):
                 self.context[key] = [self.context[key]]
-            self.context[key].append(value)
+            else:
+                self.context[key] = value
         else:
             self.context[key] = value
 

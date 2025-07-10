@@ -8,7 +8,7 @@ from typing import Any, List
 
 from loguru import logger
 
-from worksheets.core.fields import GenieType
+from worksheets.core.worksheet import GenieType
 from worksheets.utils.variable import find_list_variable
 
 

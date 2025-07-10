@@ -342,11 +342,12 @@ class GenieWorksheet(metaclass=GenieREPR):
         if not hasattr(self, "backend_api"):
             return
 
-        parameters = []
-        for f in get_genie_fields_from_ws(self):
-            parameters.append(f"{f.name}= self.{f.name}")
+        # parameters = []
+        # for f in get_genie_fields_from_ws(self):
+        #     parameters.append(f"{f.name}= self.{f.name}")
 
-        code = f"{self.backend_api}({', '.join(parameters)})"
+        # code = f"{self.backend_api}({', '.join(parameters)})"
+        code = self.backend_api
 
         from worksheets.utils.variable import get_variable_name
 
@@ -471,7 +472,7 @@ class Answer(GenieWorksheet):
         param_names: Required parameter names.
     """
 
-    def __init__(self, query, required_params, tables, nl_query):
+    def __init__(self, query, required_params, tables, nl_query, datatype=None):
         self.query = GenieField("str", "query", value=query)
         self.actions = Action(">suql_runner(self.query.value, self.required_columns)")
         self.result = None
@@ -480,6 +481,51 @@ class Answer(GenieWorksheet):
         self.nl_query = nl_query
         self.param_names = []
         self.action_performed = False
+        self.datatype = datatype
+
+        # find the datatype (if its primitive then, okay, else find in the context)
+        if datatype is not None:
+            # Define primitive types that don't need context lookup
+            primitive_types = {
+                "str",
+                "int",
+                "float",
+                "bool",
+                "list",
+                "dict",
+                "tuple",
+                "set",
+                "frozenset",
+                "bytes",
+                "bytearray",
+                "complex",
+                "object",
+                "type",
+                "None",
+            }
+
+            # If datatype is a string, check if it's primitive or needs context lookup
+            if isinstance(datatype, str):
+                if datatype.lower() not in primitive_types:
+                    # Look up the datatype in the bot's context
+                    if hasattr(Answer, "bot") and Answer.bot is not None:
+                        if datatype in Answer.bot.context.context:
+                            # Found the class in context, use the actual class
+                            self.datatype = Answer.bot.context.context[datatype]
+                        else:
+                            # Not found in context, keep as string for now
+                            logger.warning(
+                                f"Datatype '{datatype}' not found in bot context, keeping as string"
+                            )
+                            self.datatype = datatype
+                    else:
+                        # Bot not available yet, keep as string
+                        logger.debug(
+                            f"Bot not available for datatype lookup, keeping '{datatype}' as string"
+                        )
+                        self.datatype = datatype
+                # else: datatype is primitive, keep as-is
+            # else: datatype is already a class object, keep as-is
 
         for table in self.tables:
             self.potential_outputs.extend(self.bot.context.context[table].outputs)
@@ -584,14 +630,26 @@ class Answer(GenieWorksheet):
 
     def output_in_result(self, results: list):
         """Check if the output type is in the results."""
+
+        # we don not use the datatype for now
+        def sanitize_key(key: str):
+            return key.replace(" ", "_").replace("'", "").replace("&", "and").lower()
+
+        # always fallback to the potential outputs
         if len(self.potential_outputs):
             output_results = []
+            # the results is a list of dict with column and values, each element in thelist is a row
             for result in results:
-                for output_type in self.potential_outputs:
+                # there could be multiple types of outputs defined in geniews
+                for output_type in [self.datatype, *self.potential_outputs]:
                     found_primary_key = False
                     for field in get_genie_fields_from_ws(output_type):
                         if field.primary_key and field.name in result:
-                            output_results.append(output_type(**result))
+                            params = {}
+                            for key, value in result.items():
+                                if field.name == sanitize_key(key):
+                                    params[field.name] = value
+                            output_results.append(output_type(**params))
                             found_primary_key = True
                             break
                     if not found_primary_key:

@@ -800,6 +800,22 @@ class AgentPolicyManager:
             logger.debug("Discovering and executing local policies")
             local_context = self._discover_and_execute_local(local_context)
 
+            # completed_apis = {}
+            # # Assign the result of completed Worksheet to their respective variables
+            # for key, value in local_context.context.items():
+            #     if (
+            #         isinstance(value, GenieWorksheet)
+            #         and value.is_complete(self.bot, local_context)
+            #         and value.action_performed
+            #         and hasattr(
+            #             value, "backend_api"
+            #         )  # Why should it be a backend api? This should hold true for all the worksheets
+            #     ):
+            #         completed_apis["__" + key] = value
+            #         local_context.set(key, value.result, force=True)
+
+            # local_context.update(completed_apis)
+
             # Update global context and prepare for next iteration
             logger.debug("Updating global context and turn context")
             self.bot.update_from_context(local_context)

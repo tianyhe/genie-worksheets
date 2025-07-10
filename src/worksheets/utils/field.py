@@ -95,9 +95,8 @@ def find_all_variables_matching_name(field_name: str, context: Any) -> List[str]
 
     try:
         for key, value in context.context.items():
-            if hasattr(value, "_ordered_attributes"):
+            if hasattr(value, "_ordered_attributes") and not inspect.isclass(value):
                 find_matching_variables(value, field_name, key)
-
         logger.debug(f"Found {len(variables)} matching variables")
         return variables
     except Exception as e:

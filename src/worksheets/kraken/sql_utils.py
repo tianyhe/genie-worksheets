@@ -13,8 +13,11 @@ def execute_sql(
     api_base=None,
     api_version=None,
     api_key=None,
+    db_host=None,
+    db_port=None,
+    db_username=None,
+    db_password=None,
 ):
-
     try:
         results, column_names, _ = suql_execute(
             sql,
@@ -28,6 +31,10 @@ def execute_sql(
             api_base=api_base,
             api_version=api_version,
             api_key=api_key,
+            host=db_host,
+            port=db_port,
+            select_username=db_username,
+            select_userpswd=db_password,
         )
         status = None
     except Exception as e:

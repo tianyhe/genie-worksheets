@@ -80,6 +80,10 @@ class SqlQuery:
         api_base=None,
         api_version=None,
         api_key=None,
+        db_host=None,
+        db_port=None,
+        db_username=None,
+        db_password=None,
     ):
         # TODO: probably need to perform some post processing by using column_names with self.execution_result
         execution_result, column_names, self.execution_status = execute_sql(
@@ -92,6 +96,10 @@ class SqlQuery:
             api_base=api_base,
             api_version=api_version,
             api_key=api_key,
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
         )
 
         if execution_result is not None:
@@ -140,7 +148,6 @@ def add_item_to_list(_list: list, item) -> list:
     # if item not in ret:
     ret.append(item)
     return ret
-
 
 
 class Action:

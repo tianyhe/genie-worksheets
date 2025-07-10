@@ -35,7 +35,7 @@ class GenieValue:
         Args:
             value: The primitive value to wrap
         """
-        logger.debug(f"Creating GenieValue with value: {value}")
+        # logger.debug(f"Creating GenieValue with value: {value}")
         self.value = value
         self.confirmed = False
 
@@ -43,7 +43,7 @@ class GenieValue:
         return f"{self.value}"
 
     def __eq__(self, other: Any) -> bool:
-        logger.debug(f"Comparing GenieValue {self.value} with {other}")
+        # logger.debug(f"Comparing GenieValue {self.value} with {other}")
         if isinstance(other, GenieValue):
             return self.value == other.value
         return self.value == other
@@ -57,9 +57,9 @@ class GenieValue:
         Returns:
             The confirmed value instance
         """
-        logger.debug(
-            f"Setting confirmation status to {confirmed} for value: {self.value}"
-        )
+        # logger.debug(
+        #     f"Setting confirmation status to {confirmed} for value: {self.value}"
+        # )
         self.confirmed = confirmed
         return self
 
@@ -90,9 +90,9 @@ class GenieResult(GenieValue):
             parent: The parent object that produced this result
             parent_var_name: The variable name of the parent in the context
         """
-        logger.debug(f"Creating GenieResult with value: {value}")
-        logger.debug(f"Parent: {parent.__class__.__name__}")
-        logger.debug(f"Parent variable name: {parent_var_name}")
+        # logger.debug(f"Creating GenieResult with value: {value}")
+        # logger.debug(f"Parent: {parent.__class__.__name__}")
+        # logger.debug(f"Parent variable name: {parent_var_name}")
 
         super().__init__(value)
         self.parent = parent
@@ -170,9 +170,9 @@ class GenieField:
             action_performed: Whether action has been performed
             **kwargs: Additional keyword arguments
         """
-        logger.debug(f"Creating GenieField: {name}")
-        logger.debug(f"Type: {slottype}")
-        logger.debug(f"Initial value: {value}")
+        # logger.debug(f"Creating GenieField: {name}")
+        # logger.debug(f"Type: {slottype}")
+        # logger.debug(f"Initial value: {value}")
 
         self.predicate = predicate
         self.slottype = slottype
@@ -192,12 +192,12 @@ class GenieField:
         self._value = self.init_value(value)
         self._confirmed = confirmed
 
-        logger.debug(f"Field {name} initialized with attributes:")
-        logger.debug(f"  Optional: {self.optional}")
-        logger.debug(f"  Requires confirmation: {self.requires_confirmation}")
-        logger.debug(f"  Internal: {self.internal}")
-        logger.debug(f"  Primary key: {self.primary_key}")
-        logger.debug(f"  Has validation: {self.validation is not None}")
+        # logger.debug(f"Field {name} initialized with attributes:")
+        # logger.debug(f"  Optional: {self.optional}")
+        # logger.debug(f"  Requires confirmation: {self.requires_confirmation}")
+        # logger.debug(f"  Internal: {self.internal}")
+        # logger.debug(f"  Primary key: {self.primary_key}")
+        # logger.debug(f"  Has validation: {self.validation is not None}")
 
     def __getattr__(self, item: str) -> Any:
         """Get an attribute of the field.
@@ -212,7 +212,7 @@ class GenieField:
 
         # Delegate to value if it’s a Field instance
         if isinstance(self.value, GenieWorksheet):
-            logger.debug(f"Getting attribute {item} from GenieWorksheet")
+            # logger.debug(f"Getting attribute {item} from GenieWorksheet")
             x = getattr(self.value, item)
             return x
         raise AttributeError(
@@ -279,7 +279,7 @@ class GenieField:
         Returns:
             A new GenieField instance
         """
-        logger.debug(f"Creating deep copy of field: {self.name}")
+        # logger.debug(f"Creating deep copy of field: {self.name}")
         try:
             new_field = GenieField(
                 slottype=deepcopy(self.slottype, memo),
@@ -300,11 +300,21 @@ class GenieField:
                 parent=self.parent,
                 bot=self.bot,
             )
-            logger.debug(f"Successfully created deep copy of field: {self.name}")
+            # logger.debug(f"Successfully created deep copy of field: {self.name}")
             return new_field
         except Exception as e:
             logger.error(f"Error creating deep copy of field {self.name}: {str(e)}")
             raise
+
+    def __getitem__(self, item: Any) -> Any:
+        """Get an item from the field.
+        """
+        if isinstance(self.value, list):
+            return self.value[item]
+        elif isinstance(self.value, dict):
+            return self.value[item]
+        else:
+            raise ValueError(f"Cannot get item {item} from field {self.name}")
 
     def perform_action(self, runtime: "GenieRuntime", local_context: "GenieContext"):
         """Perform the action associated with this field if it hasn't been performed yet.
@@ -343,7 +353,7 @@ class GenieField:
         Returns:
             The schema representation
         """
-        logger.debug(f"Generating schema for field: {self.name}")
+        # logger.debug(f"Generating schema for field: {self.name}")
         try:
             if isinstance(self.slottype, str) and self.slottype == "confirm":
                 slottype = "bool"
@@ -371,7 +381,7 @@ class GenieField:
             else:
                 schema = f"{self.name}: {slottype}"
 
-            logger.debug(f"Generated schema: {schema}")
+            # logger.debug(f"Generated schema: {schema}")
             return schema
         except Exception as e:
             logger.error(f"Error generating schema for field {self.name}: {str(e)}")
@@ -386,7 +396,7 @@ class GenieField:
         Returns:
             The schema representation without type, or None if excluded
         """
-        logger.debug(f"Generating schema without type for field: {self.name}")
+        # logger.debug(f"Generating schema without type for field: {self.name}")
         try:
             if self.value is None:
                 val = None
@@ -399,11 +409,11 @@ class GenieField:
                     val = self.value
 
             if no_none and val == "None":
-                logger.debug(f"Skipping None value for field: {self.name}")
+                # logger.debug(f"Skipping None value for field: {self.name}")
                 return None
 
             schema = f"{self.name} = {repr(val)}"
-            logger.debug(f"Generated schema: {schema}")
+            # logger.debug(f"Generated schema: {schema}")
             return schema
         except Exception as e:
             logger.error(
@@ -421,9 +431,9 @@ class GenieField:
     @confirmed.setter
     def confirmed(self, confirmed: bool):
         """Set the confirmation status of the field."""
-        logger.debug(
-            f"Setting confirmation status to {confirmed} for field: {self.name}"
-        )
+        # logger.debug(
+        #     f"Setting confirmation status to {confirmed} for field: {self.name}"
+        # )
         self._confirmed = confirmed
 
     @property
@@ -436,7 +446,7 @@ class GenieField:
     @value.setter
     def value(self, value: Any):
         """Set the field value."""
-        logger.debug(f"Setting value for field {self.name}: {value}")
+        # logger.debug(f"Setting value for field {self.name}: {value}")
         self.action_performed = False
         self._value = self.init_value(value)
 
@@ -496,7 +506,9 @@ class GenieField:
         logger.debug(f"Checking previous confirmation for field {self.name}")
 
         try:
-            if self.bot.agent.dlg_history is not None and len(self.bot.agent.dlg_history):
+            if self.bot.agent.dlg_history is not None and len(
+                self.bot.agent.dlg_history
+            ):
                 if self.bot.agent.dlg_history[-1].system_action is not None:
                     for act in self.bot.agent.dlg_history[-1].system_action.actions:
                         from worksheets.core.agent_acts import AskAgentAct

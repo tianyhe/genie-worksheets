@@ -28,7 +28,7 @@ class ChainlitAgent(Agent):
 
         # process the dialogue turn to GenieWorksheets
         async with cl.Step(
-            name="Semantic Parsing",
+            name="LLM to understand the user statement",
             type="semantic_parser",
             language="python",
             show_input=True,
@@ -40,7 +40,7 @@ class ChainlitAgent(Agent):
 
         # run the agent policy
         async with cl.Step(
-            name="Agent Policy",
+            name="Genie Algorithm to apply the agent policy",
             type="agent_policy",
             language="python",
             show_input=True,
@@ -53,7 +53,7 @@ class ChainlitAgent(Agent):
 
         # generate a response based on the agent policy
         async with cl.Step(
-            name="Generating Response",
+            name="LLM to frame the response",
             type="response_generator",
             language="json",
             show_input=True,

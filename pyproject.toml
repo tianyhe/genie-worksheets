@@ -21,6 +21,7 @@ dependencies = [
     "langchain-openai>=0.1.7",
     "langchain-together>=0.1.1",
     "chainlit>=2.0.0",
+    "rich>=14.0.0",
 ]
 
 [build-system]

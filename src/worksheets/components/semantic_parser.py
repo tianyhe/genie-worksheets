@@ -1,3 +1,4 @@
+import ast
 import datetime
 import os
 import re
@@ -151,7 +152,7 @@ class KnowledgeBaseParser:
 
     async def process_answer_queries(
         self,
-        answer_queries: List[str],
+        answer_queries: List[Tuple[str, Optional[str]]],
         dlg_history: List[CurrentDialogueTurn],
         user_target: str,
         pattern_type: str,
@@ -159,7 +160,7 @@ class KnowledgeBaseParser:
         """Process answer queries and generate SUQL queries.
 
         Args:
-            answer_queries (List[str]): List of answer queries to process.
+            answer_queries (List[Tuple[str, Optional[str]]]): List of (query, datatype) tuples to process.
             dlg_history (List[CurrentDialogueTurn]): The dialogue history.
             user_target (str): The user target code.
             pattern_type (str): The pattern type ("func" or "attr").
@@ -170,8 +171,8 @@ class KnowledgeBaseParser:
         suql_queries = []
         updated_target = user_target
 
-        for answer_query in answer_queries:
-            logger.info(f"Answer query: {answer_query}")
+        for answer_query, datatype in answer_queries:
+            logger.info(f"Answer query: {answer_query}, datatype: {datatype}")
             parsing_sql_response = await self._parse_to_suql(dlg_history, answer_query)
 
             if parsing_sql_response:
@@ -184,6 +185,9 @@ class KnowledgeBaseParser:
             if suql_query:
                 tables, unfilled_params = self._process_suql_query(suql_query)
                 suql_queries.append(suql_query)
+            else:
+                tables = []
+                unfilled_params = {}
 
             updated_target = self._update_user_target(
                 updated_target,
@@ -194,6 +198,7 @@ class KnowledgeBaseParser:
                 pattern_type,
                 db_result,
                 db_result_exec,
+                datatype,
             )
 
         return suql_queries, updated_target
@@ -294,6 +299,7 @@ class KnowledgeBaseParser:
         pattern_type: str,
         db_result: Optional[str],
         db_result_exec: bool,
+        datatype: Optional[str],
     ) -> str:
         """Update the user target with processed query information.
 
@@ -304,6 +310,9 @@ class KnowledgeBaseParser:
             tables (List[str]): The tables used in the query.
             unfilled_params (Dict[str, Any]): The unfilled parameters.
             pattern_type (str): The pattern type ("func" or "attr").
+            db_result (Optional[str]): The database result.
+            db_result_exec (bool): Whether the database result was executed.
+            datatype (Optional[str]): The datatype specified for the answer.
 
         Returns:
             str: The updated user target.
@@ -314,15 +323,42 @@ class KnowledgeBaseParser:
         # I don't want to execute it directly right now, that doesn't seem a good idea -- there can be random formatting
         # issues and other complications.
         if pattern_type == "func":
-            answer_str = f"Answer({repr(suql_query)}, {unfilled_params}, {tables}, {repr(answer_query[1:-1])})"
+            # Include datatype in the Answer constructor if provided
+            datatype_arg = f", datatype={repr(datatype)}" if datatype else ""
+            answer_str = f"Answer({repr(suql_query)}, {unfilled_params}, {tables}, {repr(answer_query[1:-1])}{datatype_arg})"
+
+            # Find and replace the original answer function call
+            # The answer_query includes quotes, so we need to find the actual function call
+            query_without_quotes = answer_query[1:-1]  # Remove outer quotes
+
+            # Try different patterns to find the original function call
+            patterns = [
+                # answer("query", datatype=SomeType)
+                rf"answer\({re.escape(answer_query)},\s*datatype\s*=\s*[^,)]+\)",
+                # answer(query="query", datatype=SomeType)
+                rf"answer\(\s*query\s*=\s*{re.escape(answer_query)},\s*datatype\s*=\s*[^,)]+\)",
+                # answer("query")
+                rf"answer\({re.escape(answer_query)}\)",
+                # answer(query="query")
+                rf"answer\(\s*query\s*=\s*{re.escape(answer_query)}\)",
+            ]
+
+            for pattern in patterns:
+                match = re.search(pattern, user_target)
+                if match:
+                    return user_target.replace(match.group(0), answer_str)
+
+            # Fallback: if no pattern matches, try simple replacement
             return user_target.replace(f"answer({answer_query})", answer_str)
         else:
             answer_var = re.search(r"answer_(\d+)", user_target).group(0)
+            # Include datatype in the update call if provided
+            datatype_arg = f", datatype={repr(datatype)}" if datatype else ""
             answer_str = (
                 f"{answer_var}.result = []\n"
                 f"{answer_var}.update(query={repr(suql_query)}, "
                 f"unfilled_params={unfilled_params}, tables={tables}, "
-                f"query_str={repr(answer_query[1:-1])})"
+                f"query_str={repr(answer_query[1:-1])}{datatype_arg})"
             )
             return user_target.replace(
                 f"{answer_var}.query = {answer_query}", answer_str
@@ -422,26 +458,29 @@ class GenieParser:
         Returns:
             Tuple[str, List[str]]: A tuple containing the user target code and SUQL queries.
         """
-        input_data = prepare_semantic_parser_input(
-            self.runtime, dlg_history, current_dlg_turn, self.agent.starting_prompt
-        )
-        (
-            state_schema,
-            agent_acts,
-            agent_utterance,
-            available_worksheets_text,
-            available_dbs_text,
-        ) = input_data
+        if current_dlg_turn.user_target_sp is None:
+            input_data = prepare_semantic_parser_input(
+                self.runtime, dlg_history, current_dlg_turn, self.agent.starting_prompt
+            )
+            (
+                state_schema,
+                agent_acts,
+                agent_utterance,
+                available_worksheets_text,
+                available_dbs_text,
+            ) = input_data
 
-        user_target = await self.contextual_parser.generate_formal_representation(
-            dlg_history,
-            current_dlg_turn,
-            state_schema,
-            agent_acts,
-            agent_utterance,
-            available_worksheets_text,
-            available_dbs_text,
-        )
+            user_target = await self.contextual_parser.generate_formal_representation(
+                dlg_history,
+                current_dlg_turn,
+                state_schema,
+                agent_acts,
+                agent_utterance,
+                available_worksheets_text,
+                available_dbs_text,
+            )
+        else:
+            user_target = current_dlg_turn.user_target_sp
 
         answer_queries, pattern_type = self._extract_answer_queries(user_target)
         suql_queries, user_target = await self.knowledge_parser.process_answer_queries(
@@ -451,31 +490,102 @@ class GenieParser:
         return user_target.strip(), suql_queries
 
     @staticmethod
-    def _extract_answer_queries(text: str) -> Tuple[List[str], str]:
-        """Extract answer queries from the provided text.
+    def _extract_answer_queries(
+        text: str,
+    ) -> Tuple[List[Tuple[str, Optional[str]]], str]:
+        """Extract answer queries from the provided text using AST parsing.
 
         Args:
             text (str): The input text containing answer queries.
 
         Returns:
-            Tuple[List[str], str]: A tuple containing extracted queries and pattern type.
+            Tuple[List[Tuple[str, Optional[str]]], str]: A tuple containing extracted (query, datatype) pairs and pattern type.
         """
-        pattern_type = "func"
-        # Match answer() with string argument
-        pattern = r'answer\((?:("[^"]*")|(\'[^\']*\'))\)'
-        matches = re.findall(pattern, text)
 
-        # Match answer(query='...') format
-        if not matches:
-            pattern = r'answer\(query=(?:("[^"]*")|(\'[^\']*\'))\)'
-            matches = re.findall(pattern, text)
+        class AnswerQueryExtractor(ast.NodeVisitor):
+            def __init__(self):
+                self.queries = []
+                self.pattern_type = "func"
 
-        queries = [match[0] or match[1] for match in matches]
+            def visit_Call(self, node):
+                """Visit function call nodes to find answer() calls."""
+                if isinstance(node.func, ast.Name) and node.func.id == "answer":
+                    # Extract string arguments from answer() calls
+                    query = None
+                    datatype = None
 
-        if not queries:
-            pattern = r'answer_\d+\.query = (?:("[^"]*")|(\'[^\']*\'))'
-            matches = re.findall(pattern, text)
-            queries = [match[0] or match[1] for match in matches]
-            pattern_type = "attr"
+                    # Handle positional arguments: answer("query") or answer("query", datatype=...)
+                    if node.args and isinstance(node.args[0], ast.Str):
+                        query = node.args[0].s
+                    elif (
+                        node.args
+                        and isinstance(node.args[0], ast.Constant)
+                        and isinstance(node.args[0].value, str)
+                    ):
+                        query = node.args[0].value
 
-        return queries, pattern_type
+                    # Handle keyword arguments: answer(query="...", datatype="...")
+                    for keyword in node.keywords:
+                        if keyword.arg == "query":
+                            if isinstance(keyword.value, ast.Str):
+                                query = keyword.value.s
+                            elif isinstance(keyword.value, ast.Constant) and isinstance(
+                                keyword.value.value, str
+                            ):
+                                query = keyword.value.value
+                        elif keyword.arg == "datatype":
+                            if isinstance(keyword.value, ast.Str):
+                                datatype = keyword.value.s
+                            elif isinstance(keyword.value, ast.Constant) and isinstance(
+                                keyword.value.value, str
+                            ):
+                                datatype = keyword.value.value
+                            elif isinstance(keyword.value, ast.Name):
+                                # Handle identifier names like Fund, str, int, etc.
+                                datatype = keyword.value.id
+
+                    if query:
+                        self.queries.append((f'"{query}"', datatype))
+
+                self.generic_visit(node)
+
+            def visit_Assign(self, node):
+                """Visit assignment nodes to find answer_X.query = "..." patterns."""
+                if len(node.targets) == 1:
+                    target = node.targets[0]
+
+                    # Check if it's an attribute assignment: answer_X.query
+                    if (
+                        isinstance(target, ast.Attribute)
+                        and target.attr == "query"
+                        and isinstance(target.value, ast.Name)
+                    ):
+                        # Check if the variable name matches answer_\d+ pattern
+                        var_name = target.value.id
+                        if re.match(r"answer_\d+$", var_name):
+                            # Extract the string value being assigned
+                            if isinstance(node.value, ast.Str):
+                                query = node.value.s
+                                self.queries.append((f'"{query}"', None))
+                                self.pattern_type = "attr"
+                            elif isinstance(node.value, ast.Constant) and isinstance(
+                                node.value.value, str
+                            ):
+                                query = node.value.value
+                                self.queries.append((f'"{query}"', None))
+                                self.pattern_type = "attr"
+
+                self.generic_visit(node)
+
+        try:
+            # Parse the text as Python AST
+            tree = ast.parse(text)
+            extractor = AnswerQueryExtractor()
+            extractor.visit(tree)
+
+            return extractor.queries, extractor.pattern_type
+
+        except SyntaxError:
+            # Fallback to empty result if parsing fails
+            logger.warning(f"Failed to parse code as AST, no answer queries extracted")
+            return [], "func"

@@ -14,6 +14,7 @@ from worksheets.core.builtin_functions import (
     no_response,
     propose,
     say,
+    state_response,
 )
 from worksheets.core.context import GenieContext
 from worksheets.core.fields import GenieValue
@@ -92,6 +93,7 @@ class GenieRuntime:
                 MoreFieldInfo,
                 say,
                 no_response,
+                state_response,
             ]
         )
         for api in apis:
@@ -306,9 +308,8 @@ class GenieInterpreter:
         except Exception as e:
             logger.error(f"Error: {e}")
             logger.error(f"Code: {code}")
-            import ipdb
 
-            ipdb.set_trace()
+            local_context.context["__result"] = e
 
     def eval(self, code, global_context, local_context):
         # perform rewrite to update any variables that is not in the local context

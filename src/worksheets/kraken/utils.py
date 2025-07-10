@@ -78,6 +78,10 @@ def execute_sql_object(
     table_w_ids: Dict,
     database_name: str,
     embedding_server_address,
+    db_host,
+    db_port,
+    db_username,
+    db_password,
     source_file_mapping,
     suql_model_name,
     api_base=None,
@@ -93,6 +97,10 @@ def execute_sql_object(
         api_base=api_base,
         api_version=api_version,
         api_key=api_key,
+        db_host=db_host,
+        db_port=db_port,
+        db_username=db_username,
+        db_password=db_password,
     )
     return sql
 

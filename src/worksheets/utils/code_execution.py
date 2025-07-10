@@ -34,6 +34,7 @@ def execute_query(code: str, obj: Any, bot: Any, local_context: Any) -> Any:
 
     try:
         code = modify_action_code(code, obj, bot, local_context)
+        code = sanitize_dev_code(code, bot.get_all_variables())
         logger.debug(f"Modified code: {code}")
 
         code_ = f"__return = {code}"
