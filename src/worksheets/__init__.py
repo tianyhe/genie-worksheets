@@ -10,7 +10,7 @@ from worksheets.utils.interface import conversation_loop
 __all__ = [
     "SUQLKnowledgeBase",
     "SUQLReActParser",
-    "DatatalkParser"
+    "DatatalkParser",
     "conversation_loop",
     "AgentBuilder",
     "Config",
