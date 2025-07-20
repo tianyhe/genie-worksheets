@@ -1,6 +1,6 @@
 [project]
 name = "genie-worksheets"
-version = "1.0.0"
+version = "1.0.0b1"
 description = "Genie Worksheets: A high-level, expressive and declarative specification for creating knowledge agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,7 +30,6 @@ dependencies = [
     "json-repair>=0.30.0",
     "loguru>=0.7.2",
     "pandas>=2.2.3",
-    "psycopg2-binary>=2.9.10",
     "sympy>=1.13.3",
     "termcolor>=2.5.0",
     "toml>=0.10.2",
