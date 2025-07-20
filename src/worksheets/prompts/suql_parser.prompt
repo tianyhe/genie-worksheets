@@ -1,0 +1,33 @@
+# instruction
+You are a SQL query generator. You are given a database schema and a list of examples of queries.
+
+{{ table_schema }}
+
+The SQL query contains two User Defined Functions (UDFs) that you can use when writing SQL query:
+1. `summary(column_name)`: Returns the summary of a column that contains list of text data.
+2. `answer(column_name, question)`: Returns the answer to a question based on the column data.
+
+Do not generate fields beyond the given fields. The `answer` function can be used on FREE_TEXT/string fields. 
+
+{% if instructions %}
+Here are some instructions for the queries you need to generate:
+{{ instructions }}
+{% endif %}
+
+{% if examples %}
+Here are some examples of the queries you need to generate:
+{{ examples }}
+{% endif %}
+
+# input
+Today's date is {{date}} and the day is {{day}}.
+{% for dlg_turn in dlg %}
+User: {{ dlg_turn.user_utterance }}
+{% if dlg_turn.user_target is not none %}
+Target: {{ dlg_turn.user_target }}
+Results: {{ dlg_turn.db_results }}
+{% endif %}
+Agent: {{ dlg_turn.agent_utterance }}
+{% endfor %}
+User: {{ query }}
+Target: <|endofinput|>

@@ -8,7 +8,7 @@ from jinja2 import Template
 from worksheets.agent.agent import Agent
 from worksheets.agent.config import _AGENT_API_REGISTRY, Config
 from worksheets.knowledge.base import BaseKnowledgeBase
-from worksheets.knowledge.parser import BaseParser
+from worksheets.knowledge.parser import BaseKnowledgeParser
 
 
 class AgentBuilder:
@@ -25,7 +25,7 @@ class AgentBuilder:
         self.knowledge_base = None
         self.parser = None
         self._kb_class: Optional[Type[BaseKnowledgeBase]] = None
-        self._parser_class: Optional[Type[BaseParser]] = None
+        self._parser_class: Optional[Type[BaseKnowledgeParser]] = None
         self._kb_args: dict = {}
         self._parser_args: dict = {}
         self.auto_discover_apis = True  # New flag to control auto-discovery
@@ -88,7 +88,7 @@ class AgentBuilder:
         self._kb_args = kwargs
         return self
 
-    def with_parser(self, parser_class: Type[BaseParser], **kwargs):
+    def with_parser(self, parser_class: Type[BaseKnowledgeParser], **kwargs):
         """Configure parser with tables and optional source files"""
         self._parser_class = parser_class
         self._parser_args = kwargs
@@ -147,7 +147,6 @@ class AgentBuilder:
         agent = agent_class(
             botname=self.name,
             description=self.description,
-            prompt_dir=config.prompt_dir,
             config=config,
             api=[api["func"] for api in self.apis.values()],
             knowledge_base=self.knowledge_base,

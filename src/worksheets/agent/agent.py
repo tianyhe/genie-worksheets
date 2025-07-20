@@ -1,3 +1,5 @@
+import json
+import uuid
 from typing import Optional, Type
 
 from worksheets.agent.config import Config
@@ -7,7 +9,7 @@ from worksheets.components.semantic_parser import GenieParser
 from worksheets.core import GenieContext, GenieRuntime
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.knowledge.base import BaseKnowledgeBase
-from worksheets.knowledge.parser import BaseParser
+from worksheets.knowledge.parser import BaseKnowledgeParser
 from worksheets.specification.from_spreadsheet import specification_to_genie
 
 
@@ -20,8 +22,6 @@ class Agent:
         botname: str,
         # description of the agent. This is used for generating response
         description: str,
-        # directory where the prompts are stored
-        prompt_dir: str,
         # starting prompt for the agent to ask the user
         starting_prompt: str,
         # arguments to pass to the agent for configuration
@@ -31,7 +31,7 @@ class Agent:
         # knowledge configuration for the agent to run queries and respond to the user
         knowledge_base: BaseKnowledgeBase,
         # semantic parser for knowledge queries
-        knowledge_parser: BaseParser,
+        knowledge_parser: BaseKnowledgeParser,
         # contextual semantic parser
         genie_parser_class: Optional[Type[GenieParser]] = GenieParser,
         # agent policy manager
@@ -45,7 +45,6 @@ class Agent:
     ):
         self.botname = botname
         self.description = description
-        self.prompt_dir = prompt_dir
         self.starting_prompt = starting_prompt
         self.config = config
         self.api = api
@@ -58,7 +57,93 @@ class Agent:
         self.genie_agent_policy_class = genie_agent_policy_class
         self.genie_response_generator_class = genie_response_generator_class
 
-    def load_runtime_from_specification(self, csv_path: str | None = None, gsheet_id: str | None = None, json_path: str | None = None):
+        self.session_id = str(uuid.uuid4())
+
+    # ── context-manager hooks ─────────────────────────────────────────
+    def __enter__(self):
+        """Enter the agent context manager."""
+        return self.enter()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the agent context manager and save logs and conversation."""
+        try:
+            self.close()
+        except Exception as e:
+            # Log the error but don't suppress the original exception
+            print(f"Warning: Failed to save logs during agent shutdown: {e}")
+        # Don't suppress exceptions - re-raise any error that happened inside
+        return False
+
+    def enter(self):
+        """Enter the agent context manager."""
+        return self
+
+    def close(self):
+        """Close the agent and save logs and conversation."""
+        self._save_prompt_log()
+        self._save_conversation_json()
+
+    def _save_prompt_log(self) -> None:
+        """Save prompt logs to file."""
+        import datetime
+
+        from chainlite import write_prompt_logs_to_file
+
+        # Ensure the directory exists if prompt_log_path is specified
+        if self.config.prompt_log_path is not None:
+            import os
+
+            prompt_dir = os.path.dirname(self.config.prompt_log_path)
+            if prompt_dir and not os.path.exists(prompt_dir):
+                os.makedirs(prompt_dir, exist_ok=True)
+
+        if self.config.prompt_log_path is None:
+            self.config.prompt_log_path = f"{self.botname.lower().replace(' ', '_')}_prompts_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+        write_prompt_logs_to_file(
+            self.config.prompt_log_path,
+            append=self.config.append_to_prompt_log,
+            include_timestamp=self.config.include_timestamp_in_prompt_log,
+        )
+
+    def _save_conversation_json(self) -> None:
+        """Save conversation history to JSON file.
+
+        Args:
+            path: Custom file path, defaults to {botname}_conversation.json
+        """
+        if self.config.conversation_log_path is not None:
+            import os
+
+            prompt_dir = os.path.dirname(self.config.conversation_log_path)
+            if prompt_dir and not os.path.exists(prompt_dir):
+                os.makedirs(prompt_dir, exist_ok=True)
+
+        if self.config.conversation_log_path is None:
+            import datetime
+
+            self.config.conversation_log_path = f"{self.botname.lower().replace(' ', '_')}_conversation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+        from worksheets.utils.interface import convert_to_json
+
+        write_mode = "w"
+        if self.config.append_to_conversation_log:
+            write_mode = "a"
+
+        with open(self.config.conversation_log_path, write_mode, encoding="utf-8") as f:
+            json.dump(
+                convert_to_json(self.dlg_history, self.session_id),
+                f,
+                indent=4,
+                default=str,
+            )
+
+    def load_runtime_from_specification(
+        self,
+        csv_path: str | None = None,
+        gsheet_id: str | None = None,
+        json_path: str | None = None,
+    ):
         """Load the agent configuration from the specification.
 
         Args:
@@ -70,7 +155,9 @@ class Agent:
         """
 
         # Load Genie worksheets, databases, and types from the Google Sheet
-        genie_worsheets, genie_dbs, genie_types = specification_to_genie(csv_path=csv_path, gsheet_id=gsheet_id, json_path=json_path)
+        genie_worsheets, genie_dbs, genie_types = specification_to_genie(
+            csv_path=csv_path, gsheet_id=gsheet_id, json_path=json_path
+        )
 
         # Create a SUQL runner if knowledge_base is provided. Suql runner is used by the
         # GenieRuntime to run queries against the knowledge base.
