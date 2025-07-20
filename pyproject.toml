@@ -1,6 +1,6 @@
 [project]
 name = "genie-worksheets"
-version = "1.0.0b2"
+version = "1.0.0b3"
 description = "Genie Worksheets: A high-level, expressive and declarative specification for creating knowledge agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -38,6 +38,7 @@ dependencies = [
     "langchain-openai>=0.1.7",
     "langchain-together>=0.1.1",
     "chainlit>=2.0.0",
+    "beautifulsoup4>=4.13.4",
     "rich>=14.0.0",
 ]
 
