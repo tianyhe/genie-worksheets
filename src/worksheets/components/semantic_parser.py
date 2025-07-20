@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import ast
 import datetime
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from chainlite import llm_generation_chain
 from loguru import logger
 from sql_metadata import Parser
 from suql.sql_free_text_support.execute_free_text_sql import _check_required_params
@@ -11,11 +14,14 @@ from suql.sql_free_text_support.execute_free_text_sql import _check_required_par
 from worksheets.components.rewriter import rewrite_code_to_extract_funcs
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.core.runtime import GenieRuntime
-from worksheets.llm.basic import llm_generate
 from worksheets.utils.annotation import prepare_semantic_parser_input
 from worksheets.utils.field import get_genie_fields_from_ws
 from worksheets.utils.llm import extract_code_block_from_output
 from worksheets.utils.worksheet import count_worksheet_variables
+
+if TYPE_CHECKING:
+    from worksheets.agent.agent import Agent
+    from worksheets.knowledge.parser import BaseKnowledgeParser
 
 
 class ContextualSemanticParser:
@@ -37,6 +43,14 @@ class ContextualSemanticParser:
         """
         self.runtime = runtime
         self.agent = agent
+
+        self.chain = llm_generation_chain(
+            template_file="semantic_parser.prompt",
+            engine=self.agent.config.semantic_parser.model_name,
+            temperature=self.agent.config.semantic_parser.temperature,
+            top_p=self.agent.config.semantic_parser.top_p,
+            max_tokens=self.agent.config.semantic_parser.max_tokens,
+        )
 
     async def generate_formal_representation(
         self,
@@ -72,14 +86,7 @@ class ContextualSemanticParser:
             available_dbs_text,
         )
 
-        model_args = self._get_model_args()
-
-        parsed_output = await llm_generate(
-            "semantic_parser.prompt",
-            prompt_inputs=prompt_inputs,
-            prompt_dir=self.agent.prompt_dir,
-            **model_args,
-        )
+        parsed_output = await self.chain.ainvoke(prompt_inputs)
 
         return extract_code_block_from_output(parsed_output, lang="python")
 
@@ -106,7 +113,7 @@ class ContextualSemanticParser:
             "user_utterance": current_dlg_turn.user_utterance,
             "dlg_history": dlg_history,
             "apis": available_worksheets_text,
-            "dbs": available_dbs_text,
+            "database_tables": available_dbs_text,
             "date": current_date.strftime("%Y-%m-%d"),
             "day": current_date.strftime("%A"),
             "date_tmr": (current_date + datetime.timedelta(days=1)).strftime(
@@ -329,7 +336,7 @@ class KnowledgeBaseParser:
 
             # Find and replace the original answer function call
             # The answer_query includes quotes, so we need to find the actual function call
-            query_without_quotes = answer_query[1:-1]  # Remove outer quotes
+            # query_without_quotes = answer_query[1:-1]  # Remove outer quotes
 
             # Try different patterns to find the original function call
             patterns = [
@@ -380,7 +387,7 @@ class GenieParser:
     def __init__(
         self,
         runtime: GenieRuntime,
-        parser: "BaseParser",
+        parser: "BaseKnowledgeParser",
         agent: "Agent",
     ):
         """Initialize the GenieParser.
@@ -587,5 +594,5 @@ class GenieParser:
 
         except SyntaxError:
             # Fallback to empty result if parsing fails
-            logger.warning(f"Failed to parse code as AST, no answer queries extracted")
+            logger.warning("Failed to parse code as AST, no answer queries extracted")
             return [], "func"

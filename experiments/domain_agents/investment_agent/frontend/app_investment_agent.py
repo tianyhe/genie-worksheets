@@ -33,7 +33,12 @@ logger.add(LOGS_FILE, rotation="1 day")
 # Load configurations from YAML
 
 config = Config.load_from_yaml(os.path.join(CURRENT_DIR, "..", "config.yaml"))
-config.prompt_dir = os.path.join(CURRENT_DIR, "..", "prompts")
+config.conversation_log_path = os.path.join(
+    CURRENT_DIR, "..", "logs", "investment_agent_conversation.json"
+)
+config.prompt_log_path = os.path.join(
+    CURRENT_DIR, "..", "logs", "investment_agent_prompts.jsonl"
+)
 
 
 def convert_to_json(dialogue: List[CurrentDialogueTurn]) -> List[Dict[str, Any]]:
@@ -123,6 +128,7 @@ def create_agent() -> ChainlitAgent:
 async def initialize():
     """Initialize the chat session when a user starts a conversation."""
     agent = create_agent()
+    agent.enter()
     user_id = random.randint(1000, 9999)
     user_risk_profile = random.choice(
         ["conservative", "moderate", "balanced", "bold", "aggressive"]
@@ -181,7 +187,7 @@ def on_chat_end():
     """Handle the end of a chat session."""
     user_id = cl.user_session.get("id")
     agent = cl.user_session.get("bot")
-
+    agent.close()
     ensure_user_dir_exists(user_id)
 
     if agent.dlg_history:

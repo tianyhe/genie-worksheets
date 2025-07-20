@@ -144,7 +144,7 @@ class GenieREPR(type):
             parameters.append(field.schema(value=False))
         return f"{cls.__name__}({', '.join([param for param in parameters])})"
 
-    def get_semantic_parser_schema(cls) -> str:
+    def get_semantic_parser_schema(cls, db: bool = False) -> str:
         """Generate schema representation for semantic parsing.
 
         Returns:
@@ -160,7 +160,7 @@ class GenieREPR(type):
             is_genie_type = False
 
         if is_genie_type:
-            return f"TYPE: {cls.__name__}"
+            return f"GenieType: {cls.__name__}"
 
         for field in get_genie_fields_from_ws(cls):
             if not field.internal:
@@ -170,6 +170,9 @@ class GenieREPR(type):
                 description = field.description or ""
                 # 3) build a line like "    full_name: str  # The user's full name"
                 parameters.append(f"    {schema_str},  # {description}")
+
+        if db:
+            return str(cls.__name__)
 
         if len(parameters) == 0:
             return f"{cls.__name__}()"

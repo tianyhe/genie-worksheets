@@ -11,7 +11,7 @@ _AGENT_API_REGISTRY = []
 class OpenAIModelConfig(BaseModel):
     model_name: str = Field(default="azure/gpt-4o")
     temperature: float = Field(default=0.0)
-    max_tokens: int = Field(default=512)
+    max_tokens: int = Field(default=1024)
     top_p: float = Field(default=1.0)
     frequency_penalty: float = Field(default=0.0)
     presence_penalty: float = Field(default=0.0)
@@ -27,7 +27,7 @@ class AzureModelConfig(BaseModel):
     azure_endpoint: str = Field(default=None)
     api_version: str = Field(default=None)
     temperature: float = Field(default=0.0)
-    max_tokens: int = Field(default=512)
+    max_tokens: int = Field(default=1024)
     top_p: float = Field(default=1.0)
     frequency_penalty: float = Field(default=0.0)
     presence_penalty: float = Field(default=0.0)
@@ -40,7 +40,15 @@ class Config(BaseModel):
     knowledge_parser: OpenAIModelConfig | AzureModelConfig
     knowledge_base: OpenAIModelConfig | AzureModelConfig
 
-    prompt_dir: str
+    # number of turns to use for response generator prompt
+    # each turn means (user, agent)
+    rg_num_turns: int = Field(default=2)
+
+    prompt_log_path: str | None = Field(default=None)
+    append_to_prompt_log: bool = Field(default=True)
+    include_timestamp_in_prompt_log: bool = Field(default=True)
+    conversation_log_path: str | None = Field(default=None)
+    append_to_conversation_log: bool = Field(default=True)
     validate_response: bool = Field(default=False)
 
     @classmethod

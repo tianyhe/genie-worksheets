@@ -301,7 +301,9 @@ def prepare_semantic_parser_input(
     ]
     available_worksheets_text = "\n".join(available_worksheets)
 
-    available_dbs = [db.get_semantic_parser_schema() for db in runtime.genie_db_models]
+    available_dbs = [
+        db.get_semantic_parser_schema(db=True) for db in runtime.genie_db_models
+    ]
     available_dbs_text = "\n".join(available_dbs)
     return (
         state_schema,

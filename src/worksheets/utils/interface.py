@@ -1,10 +1,8 @@
-import json
-
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.utils.annotation import get_agent_action_schemas, get_context_schema
 
 
-def convert_to_json(dialogue: list[CurrentDialogueTurn]):
+def convert_to_json(dialogue: list[CurrentDialogueTurn], session_id: str):
     """Convert the dialogue history to a JSON-compatible format.
 
     Args:
@@ -16,6 +14,7 @@ def convert_to_json(dialogue: list[CurrentDialogueTurn]):
     json_dialogue = []
     for turn in dialogue:
         json_turn = {
+            "session_id": session_id,
             "user": turn.user_utterance,
             "bot": turn.system_response,
             "turn_context": get_context_schema(turn.context),
@@ -70,13 +69,13 @@ def print_complete_history(dialogue_history):
         print_chatbot(turn.system_response)
 
 
-async def conversation_loop(agent, output_state_path, quit_commands=None, debug=False):
-    """Run the conversation loop with the chatbot. Dumps the dialogue history to a JSON file upon exit.
+async def conversation_loop(agent, quit_commands=None, debug=False):
+    """Run the conversation loop with the chatbot.
 
     Args:
         agent: The chatbot instance.
-        output_state_path (str): The path to save the dialogue history.
         quit_commands (list[str], optional): List of commands to quit the conversation. Defaults to None.
+        debug (bool, optional): Whether to enable debug mode. Defaults to False.
     """
     if quit_commands is None:
         quit_commands = ["exit", "exit()"]
@@ -103,6 +102,3 @@ async def conversation_loop(agent, output_state_path, quit_commands=None, debug=
             import pdb
 
             pdb.post_mortem()
-    finally:
-        with open(output_state_path, "w") as f:
-            json.dump(convert_to_json(agent.dlg_history), f, indent=4)

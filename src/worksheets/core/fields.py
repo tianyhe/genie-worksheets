@@ -570,14 +570,18 @@ async def validation_check(
 
     try:
         logger.debug(f"Generating LLM response with prompt: {prompt_path}")
-        response = await llm_generate(
-            prompt_path,
+        chain = llm_generation_chain(
+            template_file=prompt_path,
+            engine="azure/gpt-4.1-mini",
+            temperature=0.0,
+            max_tokens=1024,
+        )
+        response = await chain.ainvoke(
             {
                 "value": val,
                 "criteria": validation,
-                "name": name,
-            },
-            model_name="gpt-4o-mini",
+                "name": name
+            }
         )
         logger.debug(f"Received LLM response: {response}")
 

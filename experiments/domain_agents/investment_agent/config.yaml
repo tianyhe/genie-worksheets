@@ -1,5 +1,12 @@
-prompt_dir: "experiments/domain_agents/investment_agent/prompts/"
 validate_response: false
+
+prompt_log_path: "logs/investment_agent_prompts.log"
+conversation_log_path: "logs/investment_agent_conversation.json"
+
+append_to_conversation_log: true
+append_to_prompt_log: true
+include_timestamp_in_prompt_log: true
+
 semantic_parser:
     model_name: "azure/gpt-4.1"
     api_key: "AZURE_NAIRR_KEY"

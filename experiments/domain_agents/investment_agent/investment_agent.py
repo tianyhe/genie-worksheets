@@ -183,7 +183,6 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 config = Config.load_from_yaml(os.path.join(current_dir, "config.yaml"))
-config.prompt_dir = os.path.join(current_dir, "prompts")
 
 # Initialize a standalone knowledge base instance so API functions can
 # execute queries without depending on the global `agent` variable. This
@@ -225,10 +224,9 @@ agent_builder = (
     )
     .with_parser(
         DatatalkParser,
-        domain="investment_agent",
+        domain="banco_itau",
         api_key=os.getenv("DATATALK_API"),
     )
-    # .with_initial_context(user_id=user_id, risk_profile=user_risk_profile)
     .with_gsheet_specification("18dEfdpdHQxuT6nvvBBCMtmj7cy4sF5Jlnfpt66YxSIA")
 )
 
@@ -239,14 +237,14 @@ if __name__ == "__main__":
     )
     print(f"User ID: {user_id}, Risk Profile: {user_risk_profile}")
     agent = agent_builder.build(config)
-    agent.runtime.context.update(
-        {
-            "user_profile": agent.runtime.context.context["UserProfile"](
-                user_id=user_id, risk_profile=user_risk_profile
-            ),
-        }
-    )
-    # agent.runtime.local_context_init.update(
-    # {"user_id": user_id, "risk_profile": user_risk_profile}
-    # )
-    asyncio.run(conversation_loop(agent, "investment_agent.json", debug=True))
+
+    # Use agent as context manager for automatic logging and conversation saving
+    with agent:
+        agent.runtime.context.update(
+            {
+                "user_profile": agent.runtime.context.context["UserProfile"](
+                    user_id=user_id, risk_profile=user_risk_profile
+                ),
+            }
+        )
+        asyncio.run(conversation_loop(agent, debug=True))
