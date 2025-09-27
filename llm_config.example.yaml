@@ -10,8 +10,8 @@
 # 4. Follow the examples provided for Azure, OpenAI, Groq, Together, Mistral, and local models as needed, and remove unused llm endpoints.
 
 prompt_dirs: # List of directories containing prompt files, relative to the location of this file
-  - "packages/knowledge_agent/src/kraken/prompts/"  # Directory for knowledge agent prompts
-  - "./src/kraken/prompts/"
+  - "src/worksheets/kraken/prompts/"  # Directory for knowledge agent prompts
+  - "src/worksheets/prompts/"
 
 
 litellm_set_verbose: false  # Verbose logging setting for LiteLLM
