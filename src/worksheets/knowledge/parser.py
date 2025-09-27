@@ -1,10 +1,10 @@
+from __future__ import annotations
 import json
 import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import List, Optional, TYPE_CHECKING
-from __future__ import annotations
 
 import pandas as pd
 import requests

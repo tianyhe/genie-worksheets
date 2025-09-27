@@ -1,7 +1,8 @@
+
+from __future__ import annotations
 import json
 import uuid
 from typing import Optional, Type, TYPE_CHECKING
-from __future__ import annotations
 
 from worksheets.agent.config import Config
 from worksheets.components.agent_policy import AgentPolicyManager
