@@ -1,6 +1,7 @@
 import json
 import uuid
-from typing import Optional, Type
+from typing import Optional, Type, TYPE_CHECKING
+from __future__ import annotations
 
 from worksheets.agent.config import Config
 from worksheets.components.agent_policy import AgentPolicyManager
@@ -9,7 +10,6 @@ from worksheets.components.semantic_parser import GenieParser
 from worksheets.core import GenieContext, GenieRuntime
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.specification.from_spreadsheet import specification_to_genie
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from worksheets.knowledge.base import BaseKnowledgeBase

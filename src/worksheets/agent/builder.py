@@ -1,7 +1,8 @@
 import importlib
 import inspect
 from pathlib import Path
-from typing import Callable, Dict, Optional, Type
+from typing import Callable, Dict, Optional, Type, TYPE_CHECKING
+from __future__ import annotations
 
 from jinja2 import Template
 
