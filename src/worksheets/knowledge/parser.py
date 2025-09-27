@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import pandas as pd
 import requests
@@ -16,10 +16,11 @@ from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.core.runtime import GenieRuntime
 from worksheets.core.worksheet import Answer
 from worksheets.knowledge.base import SUQLKnowledgeBase
-from worksheets.kraken.agent import KrakenParser
-from worksheets.kraken.utils import DialogueTurn
+
 from worksheets.utils.llm import extract_code_block_from_output
 
+if TYPE_CHECKING:
+    from worksheets.kraken.utils import DialogueTurn
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -286,6 +287,7 @@ class SUQLReActParser(BaseSUQLParser):
         embedding_server_address: str = None,
         source_file_mapping: dict = None,
     ):
+        from worksheets.kraken.agent import KrakenParser
         parser = KrakenParser()
         parser.initialize(
             engine=self.model_config.model_name,
@@ -319,6 +321,7 @@ class SUQLReActParser(BaseSUQLParser):
         return output
 
     def update_turn(self, conversation_history, output, response):
+        from worksheets.kraken.utils import DialogueTurn
         turn = DialogueTurn(
             user_utterance=output["question"],
             agent_utterance=response,
@@ -423,6 +426,7 @@ class DatatalkParser(SUQLReActParser):
         return suql_dlg_history
 
     def update_turn(self, conversation_history, output, response):
+        from worksheets.kraken.utils import DialogueTurn
         turn = DialogueTurn(
             user_utterance=output["question"],
             agent_utterance=response,

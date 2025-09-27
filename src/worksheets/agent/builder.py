@@ -7,8 +7,11 @@ from jinja2 import Template
 
 from worksheets.agent.agent import Agent
 from worksheets.agent.config import _AGENT_API_REGISTRY, Config
-from worksheets.knowledge.base import BaseKnowledgeBase
-from worksheets.knowledge.parser import BaseKnowledgeParser
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from worksheets.knowledge.base import BaseKnowledgeBase
+    from worksheets.knowledge.parser import BaseKnowledgeParser
 
 
 class AgentBuilder:

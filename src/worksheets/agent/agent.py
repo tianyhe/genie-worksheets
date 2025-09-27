@@ -8,9 +8,12 @@ from worksheets.components.response_generator import ResponseGenerator
 from worksheets.components.semantic_parser import GenieParser
 from worksheets.core import GenieContext, GenieRuntime
 from worksheets.core.dialogue import CurrentDialogueTurn
-from worksheets.knowledge.base import BaseKnowledgeBase
-from worksheets.knowledge.parser import BaseKnowledgeParser
 from worksheets.specification.from_spreadsheet import specification_to_genie
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from worksheets.knowledge.base import BaseKnowledgeBase
+    from worksheets.knowledge.parser import BaseKnowledgeParser
 
 
 class Agent:

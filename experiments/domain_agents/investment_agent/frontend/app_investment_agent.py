@@ -12,9 +12,9 @@ from worksheets.agent.chainlit import ChainlitAgent
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.utils.annotation import get_agent_action_schemas, get_context_schema
 
-sys.path.append("/home/harshit/genie-worksheets/experiments/domain_agents/")
-
-from experiments.domain_agents.investment_agent.investment_agent import agent_builder
+current_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(current_dir, ".."))
+from investment_agent import agent_builder
 
 # Constants
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
