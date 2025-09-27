@@ -60,4 +60,6 @@ dev-dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/worksheets"]
+packages = ["worksheets"]
+[tool.hatch.build]
+include = ["src/worksheets"]
