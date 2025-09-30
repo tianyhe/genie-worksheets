@@ -3,32 +3,15 @@ validate_response: false
 prompt_log_path: "logs/investment_agent_prompts.log"
 conversation_log_path: "logs/investment_agent_conversation.json"
 
-append_to_conversation_log: true
-append_to_prompt_log: true
-include_timestamp_in_prompt_log: true
-
 semantic_parser:
     model_name: "azure/gpt-4.1"
-    api_key: "AZURE_NAIRR_KEY"
-    api_version: "2024-12-01-preview"
-    azure_endpoint: "AZURE_NAIRR_ENDPOINT"
 
 response_generator:
     model_name: "azure/gpt-4.1"
-    api_key: "AZURE_NAIRR_KEY"
-    api_version: "2024-12-01-preview"
-    azure_endpoint: "AZURE_NAIRR_ENDPOINT"
-    max_tokens: 4096
 
 knowledge_parser:
     model_name: "azure/gpt-4.1"
-    api_key: "AZURE_NAIRR_KEY"
-    api_version: "2024-12-01-preview"
-    azure_endpoint: "AZURE_NAIRR_ENDPOINT"
 
 knowledge_base:
     model_name: "azure/gpt-4.1"
-    api_key: "AZURE_NAIRR_KEY"
-    api_version: "2024-12-01-preview"
-    azure_endpoint: "AZURE_NAIRR_ENDPOINT"
 
