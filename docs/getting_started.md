@@ -131,29 +131,16 @@ import os
 config = Config(
     semantic_parser=AzureModelConfig(
         model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
     ),
     response_generator=AzureModelConfig(
         model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
     ),
     knowledge_parser=AzureModelConfig(
         model_name="gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
     ),
     knowledge_base=AzureModelConfig(
         model_name="azure/gpt-4o",
-        api_key=os.getenv("AZURE_OPENAI_WS_KEY"),
-        api_version=os.getenv("AZURE_WS_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_WS_ENDPOINT"),
     ),
-    prompt_dir=prompt_dir,
 )
 ```
 

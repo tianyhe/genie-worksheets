@@ -80,7 +80,6 @@ def get_llm_client(*, model: str, slow_rate_limiter: bool = False, **kwargs):
             model=model,
             api_key=os.getenv(f"LLM_API_KEY"),
             base_url=os.getenv(f"LLM_API_BASE_URL"),
-            api_version=os.getenv(f"LLM_API_VERSION"),
             rate_limiter=rate_limiter,
             max_retries=3,
             timeout=10,
