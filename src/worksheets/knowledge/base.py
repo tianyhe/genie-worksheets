@@ -62,7 +62,7 @@ class SUQLKnowledgeBase(BaseKnowledgeBase):
             api_base = os.getenv("LLM_API_ENDPOINT")
             api_version = os.getenv("LLM_API_VERSION")
         else:
-            api_base = os.getenv("LLM_API_BASE")
+            api_base = os.getenv("LLM_API_BASE_URL")
             api_version = os.getenv("LLM_API_VERSION")
 
         results, column_names, _ = suql_execute(
