@@ -292,7 +292,7 @@ Here is a sample spreadsheet for a restaurant agent: [Restaurant Agent](https://
 Please note that we only use the specification defined in the first sheet of the spreadsheet.
 
 ## LLM Config
-You should modify `llm_config.example.yaml` and save it as `llm_config.yaml` from the directory where you run the agent.
+You should create a `.env` file similar to `.env.example` and fill in the values for the LLM API keys and endpoints.
 
 ## Running the Agent (Web Interface)
 
