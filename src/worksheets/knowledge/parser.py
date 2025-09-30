@@ -11,6 +11,7 @@ import requests
 from loguru import logger
 from suql.agent import DialogueTurn as SUQLDialogueTurn
 
+from langchain_core.output_parsers import StrOutputParser
 from worksheets.agent.config import AzureModelConfig, OpenAIModelConfig
 from worksheets.core.dialogue import CurrentDialogueTurn
 from worksheets.core.runtime import GenieRuntime
@@ -190,7 +191,7 @@ class SUQLParser(BaseSUQLParser):
             metadata={
                 "dlg": suql_dlg_history,
                 "query": query,
-            }
+            },
         )
         # Generate the SUQL output
         parsed_output = await self.chain.ainvoke(
@@ -204,7 +205,7 @@ class SUQLParser(BaseSUQLParser):
                 "instructions": "\n".join([f"- {i}" for i in self.instructions]),
                 "table_schema": self.table_schema,
             },
-            callbacks=[logging_handler]
+            config={"callbacks": [logging_handler]},
         )
 
         db_result = None

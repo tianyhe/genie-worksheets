@@ -118,11 +118,12 @@ class ResponseSupervisor:
             metadata={
                 "agent_response": agent_response,
                 "prompt_inputs": prompt_inputs,
-            }
+            },
+            session_id=self.agent.session_id,
         )
         prompt_inputs["agent_response"] = agent_response
 
-        validation_output = await self.validation_chain.ainvoke(prompt_inputs, callbacks=[logging_handler])
+        validation_output = await self.validation_chain.ainvoke(prompt_inputs, config={"callbacks": [logging_handler]})
 
         return ResponseSupervisor._parse_validation_output(validation_output)
 
@@ -212,11 +213,12 @@ class ResponseGenerator:
             prompt_file="response_generator.prompt",
             metadata={
                 "prompt_inputs": prompt_inputs,
-            }
+            },
+            session_id=self.agent.session_id,
         )
 
         # Generate response
-        response = await self.chain.ainvoke(prompt_inputs, callbacks=[logging_handler])
+        response = await self.chain.ainvoke(prompt_inputs, config={"callbacks": [logging_handler]})
 
         # Update dialogue turn
         current_dlg_turn.system_response = response

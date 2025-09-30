@@ -40,14 +40,19 @@ class LoggingHandler(BaseCallbackHandler):
         self,
         prompt_file: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        session_id: Optional[str] = None,
     ):
         self.prompt_file = prompt_file or "unknown"
         self.metadata = metadata or {}
+        self.session_id = session_id
         self._start_times: Dict[str, float] = {}
         _ensure_log_dir(os.path.join("logs", "prompt_logs"))
         ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%fZ")
 
-        filename = f"{ts}.jsonl"
+        if session_id is not None:
+            filename = f"{session_id}.jsonl"
+        else:
+            filename = f"{ts}.jsonl"
         self._run_log_path = os.path.join("logs", "prompt_logs", filename)
 
     # ===== Utility =====

@@ -598,7 +598,7 @@ async def validation_check(
                 "criteria": validation,
                 "name": name
             },
-            callbacks=[logging_handler]
+            config={"callbacks": [logging_handler]},
         )
         logger.debug(f"Received LLM response: {response}")
 

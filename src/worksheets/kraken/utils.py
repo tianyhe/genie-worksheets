@@ -170,7 +170,7 @@ async def llm_rerank_window(query_text, retrieval_results):
             "query_text": query_text,
             "retrieval_results": retrieval_results,
         },
-        callbacks=[logging_handler]
+        config={"callbacks": [logging_handler]},
     )
 
     reranked_indices = process_reranking_output(reranking_prompt_output)

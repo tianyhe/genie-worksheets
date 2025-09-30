@@ -91,7 +91,8 @@ class ContextualSemanticParser:
                 "agent_utterance": agent_utterance,
                 "available_worksheets_text": available_worksheets_text,
                 "available_dbs_text": available_dbs_text,
-            }
+            },
+            session_id=self.agent.session_id,
         )
         prompt_inputs = self._prepare_prompt_inputs(
             dlg_history,
@@ -103,7 +104,7 @@ class ContextualSemanticParser:
             available_dbs_text,
         )
 
-        parsed_output = await self.chain.ainvoke(prompt_inputs, callbacks=[logging_handler])
+        parsed_output = await self.chain.ainvoke(prompt_inputs, config={"callbacks": [logging_handler]})
 
         return extract_code_block_from_output(parsed_output, lang="python")
 
