@@ -40,7 +40,7 @@ class Config(BaseModel):
 
     prompt_log_path: str | None = Field(default=None)
     conversation_log_path: str | None = Field(default=None)
-    append_to_conversation_log: bool = Field(default=True)
+    append_to_conversation_log: bool = Field(default=False)
     validate_response: bool = Field(default=False)
 
     @classmethod
