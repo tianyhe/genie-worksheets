@@ -29,6 +29,7 @@ class AzureModelConfig(BaseModel):
 
 
 class Config(BaseModel):
+    model_name: str | None = Field(default=None)
     semantic_parser: OpenAIModelConfig | AzureModelConfig
     response_generator: OpenAIModelConfig | AzureModelConfig
     knowledge_parser: OpenAIModelConfig | AzureModelConfig
